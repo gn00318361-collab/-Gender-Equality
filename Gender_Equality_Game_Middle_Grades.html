@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>性別平等大挑戰 — 中年級互動遊戲</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; background: #F0FAF9; min-height: 100vh; }
+.game-container { max-width: 800px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.screen { display: none; width: 100%; animation: fadeIn 0.5s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+@keyframes slideOutLeft { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(-30px); } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes heartBeat { 0%, 100% { transform: scale(1); } 25% { transform: scale(1.2); } }
+@keyframes confetti { 0% { opacity: 1; transform: translateY(0) rotate(0deg); } 100% { opacity: 0; transform: translateY(-60px) rotate(360deg); } }
+@keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-40px); } }
+@keyframes timerLow { 0%, 100% { color: #E63946; } 50% { color: #FF6B6B; } }
+
+.title-screen {
+  text-align: center; padding: 40px 20px;
+  background: linear-gradient(135deg, #028090 0%, #00A896 50%, #02C39A 100%);
+  border-radius: 30px; color: white; box-shadow: 0 10px 40px rgba(2,128,144,0.3);
+}
+.title-screen h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.title-screen .subtitle { font-size: 1.2em; margin-bottom: 8px; opacity: 0.9; }
+.title-screen .grade { font-size: 1em; margin-bottom: 30px; opacity: 0.8; }
+.title-screen .mascot { font-size: 5em; margin: 20px 0; }
+
+.btn { display: inline-block; padding: 15px 40px; border-radius: 50px; border: none; font-size: 1.2em; font-family: inherit; cursor: pointer; transition: all 0.3s; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+.btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+.btn-start { background: white; color: #028090; }
+.btn-next { background: #028090; color: white; margin-top: 20px; }
+
+/* HUD - Lives & Combo */
+.game-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 15px 20px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  font-weight: bold;
+}
+.lives-display {
+  display: flex;
+  gap: 8px;
+  font-size: 1.5em;
+}
+.heart {
+  display: inline-block;
+  animation: heartBeat 0.3s ease;
+}
+.heart.lost {
+  animation: shake 0.4s ease;
+  opacity: 0.3;
+}
+.score-combo-display {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.combo-display {
+  display: none;
+  align-items: center;
+  gap: 5px;
+  font-size: 1.2em;
+  color: #FF6B6B;
+  animation: pulse 0.4s ease;
+}
+.combo-display.active {
+  display: flex;
+}
+
+/* Timer */
+.timer-container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  margin: 15px auto;
+}
+.timer-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: conic-gradient(#028090 var(--percentage), #D0EFEB 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.5em;
+  color: #028090;
+  box-shadow: inset 0 0 0 3px white;
+  transition: color 0.2s ease;
+}
+.timer-circle.warning {
+  animation: timerLow 0.5s ease infinite;
+}
+
+.progress-bar { width: 100%; height: 12px; background: #D0EFEB; border-radius: 10px; margin: 15px 0; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #028090, #02C39A); border-radius: 10px; transition: width 0.5s ease; }
+.progress-text { text-align: center; color: #028090; font-size: 0.9em; font-weight: bold; }
+
+.game-card {
+  background: white; border-radius: 24px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  width: 100%; position: relative; overflow: hidden; transition: all 0.3s ease;
+}
+.game-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #028090, #00A896, #02C39A); }
+.game-card.shake-anim {
+  animation: shake 0.5s ease;
+}
+.game-card.level-transition {
+  animation: slideOutLeft 0.3s ease;
+}
+
+.level-badge { display: inline-block; background: #028090; color: white; padding: 5px 16px; border-radius: 20px; font-size: 0.85em; font-weight: bold; margin-bottom: 15px; }
+.question-text { font-size: 1.3em; color: #333; margin-bottom: 5px; line-height: 1.6; }
+.question-hint { font-size: 0.95em; color: #999; margin-bottom: 20px; }
+.scenario-emoji { font-size: 4em; text-align: center; margin: 15px 0; }
+.scenario-box {
+  background: #F0FAF9; border-radius: 16px; padding: 20px; margin: 15px 0;
+  border-left: 4px solid #02C39A; font-size: 1.05em; line-height: 1.7; color: #444;
+}
+
+.options { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+.option-btn {
+  padding: 16px 20px; border-radius: 16px; border: 3px solid #D0EFEB;
+  background: #F8FFFE; font-size: 1.05em; font-family: inherit; cursor: pointer;
+  transition: all 0.3s; text-align: left; color: #444; position: relative;
+}
+.option-btn:hover { border-color: #028090; background: #E8F8F5; transform: scale(1.02); }
+.option-btn.correct { border-color: #4CAF50; background: #E8F5E9; color: #2E7D32; }
+.option-btn.wrong { border-color: #F44336; background: #FFEBEE; color: #C62828; }
+.option-btn.disabled { pointer-events: none; opacity: 0.7; }
+
+/* True/False buttons */
+.tf-options { display: flex; gap: 20px; justify-content: center; margin-top: 20px; }
+.tf-btn {
+  padding: 20px 40px; border-radius: 20px; border: 3px solid #D0EFEB;
+  background: white; font-size: 1.3em; font-family: inherit; cursor: pointer;
+  transition: all 0.3s; min-width: 140px; text-align: center; position: relative;
+}
+.tf-btn:hover { transform: scale(1.08); }
+.tf-btn.ok:hover { border-color: #4CAF50; background: #E8F5E9; }
+.tf-btn.notok:hover { border-color: #F44336; background: #FFEBEE; }
+.tf-btn.correct { border-color: #4CAF50; background: #E8F5E9; }
+.tf-btn.wrong { border-color: #F44336; background: #FFEBEE; }
+.tf-btn.disabled { pointer-events: none; opacity: 0.6; }
+
+/* Sorting */
+.sort-list { display: flex; flex-direction: column; gap: 10px; margin: 15px 0; }
+.sort-item {
+  padding: 14px 20px; background: white; border: 2px solid #D0EFEB; border-radius: 12px;
+  display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.2s; position: relative;
+}
+.sort-item:hover { border-color: #028090; background: #F0FAF9; }
+.sort-item.selected { border-color: #028090; background: #E0F5F2; box-shadow: 0 0 0 3px rgba(2,128,144,0.2); }
+.sort-num { width: 30px; height: 30px; border-radius: 50%; background: #028090; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9em; }
+
+.feedback { margin-top: 20px; padding: 16px 20px; border-radius: 16px; font-size: 1em; line-height: 1.6; animation: fadeIn 0.3s ease; }
+.feedback.correct { background: #E8F5E9; color: #2E7D32; border-left: 4px solid #4CAF50; }
+.feedback.wrong { background: #FFF3E0; color: #E65100; border-left: 4px solid #FFB347; }
+
+.score-display { text-align: center; font-size: 1.1em; color: #028090; font-weight: bold; margin: 10px 0; }
+
+/* Floating score text */
+.floating-score {
+  position: fixed;
+  font-weight: bold;
+  font-size: 1.3em;
+  pointer-events: none;
+  animation: floatUp 1s ease-out forwards;
+}
+.floating-score.correct {
+  color: #4CAF50;
+}
+.floating-score.wrong {
+  color: #E63946;
+}
+
+/* Confetti particles */
+.confetti-particle {
+  position: fixed;
+  pointer-events: none;
+  font-size: 1.5em;
+  animation: confetti 0.6s ease-out forwards;
+}
+
+.result-screen { text-align: center; padding: 40px 20px; }
+.result-card { background: white; border-radius: 24px; padding: 40px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.result-emoji { font-size: 5em; margin-bottom: 15px; }
+.result-title { font-size: 2em; color: #028090; margin-bottom: 10px; }
+.result-score { font-size: 1.3em; color: #666; margin-bottom: 5px; }
+.result-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; text-align: left; }
+.result-stat { background: #F0FAF9; padding: 12px; border-radius: 12px; border-left: 4px solid #028090; }
+.result-stat-label { font-size: 0.9em; color: #666; }
+.result-stat-value { font-size: 1.3em; font-weight: bold; color: #028090; }
+.result-msg { font-size: 1.1em; color: #888; margin: 15px 0 25px 0; line-height: 1.6; white-space: pre-line; }
+.stars { font-size: 2.5em; margin: 15px 0; }
+
+/* Game over screen */
+.gameover-screen { text-align: center; }
+.gameover-card { background: white; border-radius: 24px; padding: 40px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.gameover-emoji { font-size: 4em; margin-bottom: 15px; }
+.gameover-title { font-size: 2em; color: #E63946; margin-bottom: 15px; }
+.gameover-msg { font-size: 1.1em; color: #666; margin-bottom: 30px; }
+
+@media (max-width: 600px) {
+  .title-screen h1 { font-size: 1.8em; }
+  .game-card { padding: 20px; }
+  .question-text { font-size: 1.1em; }
+  .tf-options { flex-direction: column; align-items: center; }
+  .game-hud { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .score-combo-display { width: 100%; justify-content: space-between; }
+  .result-stats { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="game-container" id="app">
+  <div class="screen active" id="titleScreen">
+    <div class="title-screen">
+      <div class="mascot">🤝</div>
+      <h1>性別平等大挑戰</h1>
+      <div class="subtitle">認識性別平等，學習尊重差異</div>
+      <div class="grade">三、四年級適用</div>
+      <button class="btn btn-start" onclick="startGame()">接受挑戰！</button>
+    </div>
+  </div>
+
+  <div class="screen" id="gameScreen">
+    <div class="game-hud">
+      <div class="lives-display" id="livesDisplay">❤️❤️❤️</div>
+      <div class="score-combo-display">
+        <div>⭐ <span id="scoreDisplay">0</span> 分</div>
+        <div class="combo-display" id="comboDisplay"><span>🔥x<span id="comboValue">0</span></span></div>
+      </div>
+    </div>
+    <div class="timer-container" id="timerContainer" style="display:none;">
+      <div class="timer-circle" id="timerCircle">20</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-text" id="progressText">第 1 關 / 共 8 關</div>
+    <div class="game-card" id="gameCard"></div>
+  </div>
+
+  <div class="screen" id="gameoverScreen">
+    <div class="gameover-card">
+      <div class="gameover-emoji">💔</div>
+      <div class="gameover-title">遊戲結束</div>
+      <div class="gameover-msg">哎呀！生命用完了。<br>不過沒關係，再試一次吧！</div>
+      <div style="font-size: 1.2em; color: #028090; font-weight: bold; margin-bottom: 20px;">最終分數：<span id="gameoverScore">0</span> 分</div>
+      <button class="btn btn-start" onclick="startGame()">重新開始 🎮</button>
+    </div>
+  </div>
+
+  <div class="screen" id="resultScreen">
+    <div class="result-card">
+      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="stars" id="resultStars"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-score" id="resultScore"></div>
+      <div class="result-stats" id="resultStats"></div>
+      <div class="result-msg" id="resultMsg"></div>
+      <button class="btn btn-start" onclick="startGame()">再玩一次</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const levels = [
+  {
+    type: "choice",
+    badge: "🔍 身體界線",
+    emoji: "🙌",
+    question: "小安的好朋友小豪每次見面都會勾小安的脖子，但小安覺得不舒服。小安應該怎麼做？",
+    options: [
+      { text: "😣 忍耐，因為他是好朋友", correct: false },
+      { text: "🗣️ 告訴小豪「我不喜歡這樣，可以改成擊掌嗎？」", correct: true },
+      { text: "😤 以後不跟小豪玩了", correct: false },
+    ],
+    correctMsg: "很好！即使是好朋友，也要尊重彼此的身體界線。用溫和但堅定的方式說出自己的感受，是最棒的做法！",
+    wrongMsg: "即使是好朋友，也要尊重彼此的身體界線。最好的方式是溫和但堅定地告訴對方你的感受。"
+  },
+  {
+    type: "tf",
+    badge: "⚖️ OK 不 OK？",
+    emoji: "🤔",
+    scenario: "上課時，小明傳紙條給小花，上面寫著「你好胖好醜」。小明說他只是開玩笑。",
+    question: "小明的行為可以接受嗎？",
+    answer: false,
+    correctMsg: "沒錯，這是不OK的！嘲笑別人的外表是一種言語霸凌，即使說是「開玩笑」也不行。每個人的身體都值得被尊重！",
+    wrongMsg: "這是不OK的喔！嘲笑別人的外表是言語霸凌。不管是不是開玩笑，讓別人不舒服的話就不應該說。"
+  },
+  {
+    type: "choice",
+    badge: "🛡️ 認識性騷擾",
+    emoji: "⚠️",
+    question: "下面哪一個行為屬於「性騷擾」？",
+    options: [
+      { text: "👋 朋友間互相擊掌", correct: false },
+      { text: "👀 一直盯著別人的身體看，讓對方不舒服", correct: true },
+      { text: "🤝 跟同學握手打招呼", correct: false },
+    ],
+    correctMsg: "答對了！一直盯著別人的身體看，讓對方感到不舒服，這就是一種性騷擾。尊重別人的身體，也包括目光！",
+    wrongMsg: "性騷擾不一定是身體碰觸，一直盯著別人的身體看讓對方不舒服，也是一種性騷擾喔。"
+  },
+  {
+    type: "tf",
+    badge: "⚖️ OK 不 OK？",
+    emoji: "💭",
+    scenario: "體育課分組，老師說男生一組、女生一組。小美想跟男生一起打籃球，但老師說「女生去跳繩就好了」。",
+    question: "老師的做法公平嗎？",
+    answer: false,
+    correctMsg: "這樣是不公平的！不應該因為性別來限制一個人可以做什麼運動。每個人都有權利選擇自己喜歡的活動！",
+    wrongMsg: "這樣其實不公平。運動沒有分「男生的」或「女生的」，每個人都有權利選擇自己想參加的活動。"
+  },
+  {
+    type: "sort",
+    badge: "📋 正確步驟",
+    question: "如果在學校遇到性騷擾，正確的處理步驟是什麼？請按順序排列：",
+    items: [
+      "大聲說「我不喜歡，請你停止！」",
+      "離開讓你不舒服的現場",
+      "告訴老師或輔導室",
+      "跟爸爸媽媽說明情況",
+    ],
+    correctOrder: [0, 1, 2, 3],
+    correctMsg: "太棒了！記住這四個步驟：❶ 勇敢說不 → ❷ 離開現場 → ❸ 告訴老師 → ❹ 跟家人說。你不是孤單的！",
+    wrongMsg: "正確順序是：❶ 勇敢說不 → ❷ 離開現場 → ❸ 告訴老師 → ❹ 跟家人說。記住這些步驟，保護自己！"
+  },
+  {
+    type: "choice",
+    badge: "💡 同理心",
+    emoji: "🫂",
+    question: "小花被同學摸了不該摸的地方，她很害怕。小花的好朋友應該怎麼做？",
+    options: [
+      { text: "🙊 幫小花保密，不告訴任何人", correct: false },
+      { text: "🤗 安慰小花「不是你的錯」，陪她一起告訴老師", correct: true },
+      { text: "😒 說「你幹嘛不反抗？」", correct: false },
+    ],
+    correctMsg: "太棒了！最好的做法是安慰朋友「不是你的錯」，然後陪她一起告訴老師。不要幫加害者保密，也不要怪受害的人！",
+    wrongMsg: "最好的做法是安慰朋友「不是你的錯」，然後陪她一起告訴老師。千萬不要怪受害者，也不要幫加害者保密。"
+  },
+  {
+    type: "tf",
+    badge: "⚖️ OK 不 OK？",
+    emoji: "📱",
+    scenario: "小明在通訊軟體上，一直傳訊息問小美「你喜不喜歡我？」，小美已經說「不要再問了」，但小明不停地傳。",
+    question: "小明的行為可以接受嗎？",
+    answer: false,
+    correctMsg: "不可以！當對方已經說「不要」的時候就應該停止。一直傳訊息騷擾別人，也是一種不尊重的行為。",
+    wrongMsg: "這是不OK的。當對方已經說「不要」就應該停止。一直傳訊息騷擾別人，也是一種不尊重的行為喔。"
+  },
+  {
+    type: "choice",
+    badge: "🏆 最終挑戰",
+    emoji: "🌟",
+    question: "下面哪一句話最能代表「尊重身體界線」的精神？",
+    options: [
+      { text: "🌈 每個人的界線不同，我尊重你的感受，也請你尊重我的", correct: true },
+      { text: "🤷 只要我沒有惡意，碰別人應該沒關係", correct: false },
+      { text: "😤 別人碰我沒關係，我不在意", correct: false },
+    ],
+    correctMsg: "🎉 完美！每個人對碰觸的感受不同，最重要的是互相尊重。你的界線由你決定，別人的界線也要被尊重！",
+    wrongMsg: "正確答案是第一個！不管有沒有惡意，都要尊重別人的感受和界線。你的身體你做主，別人的身體也是一樣！"
+  },
+];
+
+let currentLevel = 0, score = 0, answered = false, lives = 3, combo = 0, maxCombo = 0;
+let sortOrder = [];
+let timerInterval, timeLeft = 20;
+
+// Sound effects using Web Audio API
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type) {
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  if (type === 'correct') {
+    osc.frequency.setValueAtTime(800, now);
+    osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+    gain.gain.setValueAtTime(0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+    osc.start(now);
+    osc.stop(now + 0.1);
+  } else if (type === 'wrong') {
+    osc.frequency.setValueAtTime(600, now);
+    osc.frequency.exponentialRampToValueAtTime(300, now + 0.2);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+    osc.start(now);
+    osc.stop(now + 0.2);
+  } else if (type === 'tick') {
+    osc.frequency.setValueAtTime(1000, now);
+    gain.gain.setValueAtTime(0.1, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+    osc.start(now);
+    osc.stop(now + 0.05);
+  }
+}
+
+function createConfetti() {
+  const colors = ['🎉', '✨', '⭐', '🌟', '💫'];
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-particle';
+    p.textContent = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = Math.random() * 100 + '%';
+    p.style.top = '50%';
+    p.style.setProperty('--tx', (Math.random() - 0.5) * 100 + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 600);
+  }
+}
+
+function createFloatingScore(x, y, points, isCorrect) {
+  const f = document.createElement('div');
+  f.className = `floating-score ${isCorrect ? 'correct' : 'wrong'}`;
+  f.textContent = isCorrect ? `+${points} 🔥` : `-1 ❤️`;
+  f.style.left = x + 'px';
+  f.style.top = y + 'px';
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 1000);
+}
+
+function updateLives() {
+  let hearts = '';
+  for (let i = 0; i < lives; i++) hearts += '❤️';
+  document.getElementById('livesDisplay').textContent = hearts;
+  if (lives === 0) {
+    showGameover();
+  }
+}
+
+function updateCombo() {
+  const comboEl = document.getElementById('comboDisplay');
+  if (combo > 1) {
+    comboEl.classList.add('active');
+    document.getElementById('comboValue').textContent = combo;
+  } else {
+    comboEl.classList.remove('active');
+  }
+  if (combo > maxCombo) maxCombo = combo;
+}
+
+function startTimer() {
+  timeLeft = 20;
+  document.getElementById('timerContainer').style.display = 'block';
+  updateTimerDisplay();
+
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+
+    if (timeLeft <= 5 && timeLeft > 0) playSound('tick');
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) {
+        answered = true;
+        selectTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const circle = document.getElementById('timerCircle');
+  const percentage = (timeLeft / 20) * 100;
+  circle.style.setProperty('--percentage', percentage + '%');
+  circle.textContent = timeLeft;
+
+  if (timeLeft <= 5) circle.classList.add('warning');
+  else circle.classList.remove('warning');
+}
+
+function selectTimeout() {
+  const lv = levels[currentLevel];
+  const card = document.getElementById('gameCard');
+  card.classList.add('shake-anim');
+
+  lives--;
+  combo = 0;
+  updateLives();
+  updateCombo();
+  playSound('wrong');
+
+  document.querySelectorAll('.option-btn, .tf-btn, .sort-item').forEach(b => b.classList.add('disabled'));
+
+  document.getElementById('feedback').innerHTML = `
+    <div class="feedback wrong">
+      <span>⏰</span> 時間到了！下次要更快哦！
+    </div>`;
+
+  setTimeout(() => {
+    card.classList.remove('shake-anim');
+    showNextBtn();
+  }, 500);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  currentLevel = 0; score = 0; answered = false; lives = 3; combo = 0; maxCombo = 0;
+  updateLives();
+  updateCombo();
+  showScreen('gameScreen');
+  renderLevel();
+}
+
+function updateProgress() {
+  document.getElementById('progressFill').style.width = ((currentLevel / levels.length) * 100) + '%';
+  document.getElementById('progressText').textContent = `第 ${currentLevel + 1} 關 / 共 ${levels.length} 關`;
+  document.getElementById('scoreDisplay').textContent = score;
+}
+
+function renderLevel() {
+  answered = false;
+  updateProgress();
+  if (timerInterval) clearInterval(timerInterval);
+  const lv = levels[currentLevel];
+  const card = document.getElementById('gameCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'fadeIn 0.5s ease';
+
+  if (lv.type === 'choice') {
+    card.innerHTML = `
+      <span class="level-badge">${lv.badge}</span>
+      <div class="scenario-emoji">${lv.emoji}</div>
+      <div class="question-text">${lv.question}</div>
+      <div class="options">${lv.options.map((o, i) => `<button class="option-btn" onclick="selectOption(${i})">${o.text}</button>`).join('')}</div>
+      <div id="feedback"></div><div id="nextArea"></div>
+    `;
+  } else if (lv.type === 'tf') {
+    card.innerHTML = `
+      <span class="level-badge">${lv.badge}</span>
+      <div class="scenario-emoji">${lv.emoji}</div>
+      <div class="scenario-box">${lv.scenario}</div>
+      <div class="question-text" style="text-align:center; margin-top:15px;">${lv.question}</div>
+      <div class="tf-options">
+        <button class="tf-btn ok" onclick="selectTF(true)">⭕ OK</button>
+        <button class="tf-btn notok" onclick="selectTF(false)">❌ 不OK</button>
+      </div>
+      <div id="feedback"></div><div id="nextArea"></div>
+    `;
+  } else if (lv.type === 'sort') {
+    sortOrder = [];
+    const shuffled = lv.items.map((item, i) => ({ text: item, origIdx: i })).sort(() => Math.random() - 0.5);
+    card.innerHTML = `
+      <span class="level-badge">${lv.badge}</span>
+      <div class="question-text">${lv.question}</div>
+      <div class="question-hint">點擊項目，依照你認為的正確順序排列</div>
+      <div class="sort-list" id="sortList">
+        ${shuffled.map(item => `
+          <div class="sort-item" data-orig="${item.origIdx}" onclick="selectSort(this)">
+            <div class="sort-num" style="visibility:hidden">?</div>
+            <span>${item.text}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div style="text-align:center">
+        <button class="btn btn-next" onclick="checkSort()" id="checkSortBtn">確認順序！</button>
+      </div>
+      <div id="feedback"></div><div id="nextArea"></div>
+    `;
+  }
+
+  startTimer();
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  answered = true;
+  if (timerInterval) clearInterval(timerInterval);
+
+  const lv = levels[currentLevel];
+  const timeBonus = Math.max(0, Math.floor(timeLeft / 2));
+
+  document.querySelectorAll('.option-btn').forEach((b, i) => {
+    b.classList.add('disabled');
+    if (lv.options[i].correct) b.classList.add('correct');
+    if (i === idx && !lv.options[i].correct) b.classList.add('wrong');
+  });
+
+  const ok = lv.options[idx].correct;
+  const card = document.getElementById('gameCard');
+
+  if (ok) {
+    playSound('correct');
+    combo++;
+    const points = 10 + timeBonus + (combo > 1 ? combo * 2 : 0);
+    score += points;
+    createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, points, true);
+    createConfetti();
+    updateCombo();
+  } else {
+    playSound('wrong');
+    card.classList.add('shake-anim');
+    lives--;
+    combo = 0;
+    updateLives();
+    updateCombo();
+    setTimeout(() => card.classList.remove('shake-anim'), 500);
+  }
+
+  document.getElementById('scoreDisplay').textContent = score;
+  showFeedback(ok, lv);
+  showNextBtn();
+}
+
+function selectTF(val) {
+  if (answered) return;
+  answered = true;
+  if (timerInterval) clearInterval(timerInterval);
+
+  const lv = levels[currentLevel];
+  const timeBonus = Math.max(0, Math.floor(timeLeft / 2));
+  const ok = val === lv.answer;
+  const card = document.getElementById('gameCard');
+
+  document.querySelectorAll('.tf-btn').forEach(b => {
+    b.classList.add('disabled');
+    if (b.classList.contains('ok') && lv.answer === true) b.classList.add('correct');
+    if (b.classList.contains('notok') && lv.answer === false) b.classList.add('correct');
+    if (b.classList.contains('ok') && val === true && !ok) b.classList.add('wrong');
+    if (b.classList.contains('notok') && val === false && !ok) b.classList.add('wrong');
+  });
+
+  if (ok) {
+    playSound('correct');
+    combo++;
+    const points = 10 + timeBonus + (combo > 1 ? combo * 2 : 0);
+    score += points;
+    createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, points, true);
+    createConfetti();
+    updateCombo();
+  } else {
+    playSound('wrong');
+    card.classList.add('shake-anim');
+    lives--;
+    combo = 0;
+    updateLives();
+    updateCombo();
+    setTimeout(() => card.classList.remove('shake-anim'), 500);
+  }
+
+  document.getElementById('scoreDisplay').textContent = score;
+  showFeedback(ok, lv);
+  showNextBtn();
+}
+
+function selectSort(el) {
+  if (answered) return;
+  const origIdx = parseInt(el.dataset.orig);
+  const existIdx = sortOrder.indexOf(origIdx);
+  if (existIdx !== -1) {
+    sortOrder.splice(existIdx, 1);
+  } else {
+    sortOrder.push(origIdx);
+  }
+  document.querySelectorAll('.sort-item').forEach(item => {
+    const oi = parseInt(item.dataset.orig);
+    const pos = sortOrder.indexOf(oi);
+    const numEl = item.querySelector('.sort-num');
+    if (pos !== -1) {
+      item.classList.add('selected');
+      numEl.style.visibility = 'visible';
+      numEl.textContent = pos + 1;
+    } else {
+      item.classList.remove('selected');
+      numEl.style.visibility = 'hidden';
+    }
+  });
+}
+
+function checkSort() {
+  if (answered) return;
+  answered = true;
+  if (timerInterval) clearInterval(timerInterval);
+
+  const lv = levels[currentLevel];
+  const timeBonus = Math.max(0, Math.floor(timeLeft / 3));
+  const card = document.getElementById('gameCard');
+
+  document.getElementById('checkSortBtn').style.display = 'none';
+  const ok = JSON.stringify(sortOrder) === JSON.stringify(lv.correctOrder);
+
+  if (ok) {
+    playSound('correct');
+    combo++;
+    const points = 15 + timeBonus + (combo > 1 ? combo * 2 : 0);
+    score += points;
+    createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, points, true);
+    createConfetti();
+    updateCombo();
+  } else {
+    playSound('wrong');
+    card.classList.add('shake-anim');
+    lives--;
+    combo = 0;
+    updateLives();
+    updateCombo();
+    setTimeout(() => card.classList.remove('shake-anim'), 500);
+  }
+
+  document.getElementById('scoreDisplay').textContent = score;
+  showFeedback(ok, lv);
+  showNextBtn();
+}
+
+function showFeedback(ok, lv) {
+  document.getElementById('feedback').innerHTML = `
+    <div class="feedback ${ok ? 'correct' : 'wrong'}">
+      <span>${ok ? '✅' : '💡'}</span> ${ok ? lv.correctMsg : lv.wrongMsg}
+    </div>`;
+}
+
+function showNextBtn() {
+  document.getElementById('nextArea').innerHTML = `
+    <div style="text-align:center">
+      <button class="btn btn-next" onclick="nextLevel()">${currentLevel < levels.length - 1 ? '下一關 ➜' : '看結果 🎉'}</button>
+    </div>`;
+}
+
+function nextLevel() {
+  currentLevel++;
+  if (currentLevel >= levels.length) showResult();
+  else {
+    renderLevel();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function showGameover() {
+  if (timerInterval) clearInterval(timerInterval);
+  document.getElementById('gameoverScore').textContent = score;
+  showScreen('gameoverScreen');
+}
+
+function calculateAccuracy() {
+  const totalAnswered = currentLevel;
+  if (totalAnswered === 0) return 0;
+  return Math.round((score / (totalAnswered * 10)) * 100);
+}
+
+function showResult() {
+  if (timerInterval) clearInterval(timerInterval);
+  showScreen('resultScreen');
+  const maxScore = 85;
+  const pct = score / maxScore;
+  let emoji, title, msg, stars;
+
+  if (pct >= 0.9) { emoji = '🏆'; title = '超級厲害！'; stars = '⭐⭐⭐'; msg = '你是性別平等小達人！\n你已經學會尊重自己和別人的身體界線。'; }
+  else if (pct >= 0.6) { emoji = '😊'; title = '做得很好！'; stars = '⭐⭐'; msg = '你已經學到很多尊重的概念了！\n繼續努力，讓世界更美好！'; }
+  else { emoji = '💪'; title = '繼續加油！'; stars = '⭐'; msg = '沒關係，學習是一步一步來的。\n再玩一次，你一定會更棒！'; }
+
+  const accuracy = calculateAccuracy();
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').textContent = `最終分數：${score} 分`;
+  document.getElementById('resultStats').innerHTML = `
+    <div class="result-stat">
+      <div class="result-stat-label">準確率</div>
+      <div class="result-stat-value">${accuracy}%</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-stat-label">最高連擊</div>
+      <div class="result-stat-value">🔥x${maxCombo}</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-stat-label">總回答數</div>
+      <div class="result-stat-value">${currentLevel}/8</div>
+    </div>
+    <div class="result-stat">
+      <div class="result-stat-label">剩餘生命</div>
+      <div class="result-stat-value">${lives > 0 ? '❤️'.repeat(lives) : '💔'}</div>
+    </div>
+  `;
+  document.getElementById('resultMsg').textContent = msg;
+}
+</script>
+</body>
+</html>
