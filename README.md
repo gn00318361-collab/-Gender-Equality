@@ -67,9 +67,9 @@
 
 | 年段 | 遊戲名稱 | 關卡 | 玩法 | 遊戲連結 |
 |------|---------|------|------|---------|
-| 低年級 | 性別平等小勇士 🛡️ | 8 關 | 選擇題 + 拖拉配對 | [開始遊戲](https://gn00318361.github.io/Gender-Equality/Gender_Equality_Game_Lower_Grades.html) |
-| 中年級 | 性別平等大挑戰 🤝 | 8 關 | 選擇題 + OK/不OK 判斷 + 步驟排序 | [開始遊戲](https://gn00318361.github.io/Gender-Equality/Gender_Equality_Game_Middle_Grades.html) |
-| 高年級 | 打破框架！💜 | 8 關 | 選擇題 + 觀點辯論 + 多選題 | [開始遊戲](https://gn00318361.github.io/Gender-Equality/Gender_Equality_Game_Upper_Grades.html) |
+| 低年級 | 性別平等小勇士 🛡️ | 8 關 | 選擇題 + 拖拉配對 | [開始遊戲](https://gn00318361-collab.github.io/-Gender-Equality/Gender_Equality_Game_Lower_Grades.html) |
+| 中年級 | 性別平等大挑戰 🤝 | 8 關 | 選擇題 + OK/不OK 判斷 + 步驟排序 | [開始遊戲](https://gn00318361-collab.github.io/-Gender-Equality/Gender_Equality_Game_Middle_Grades.html) |
+| 高年級 | 打破框架！💜 | 8 關 | 選擇題 + 觀點辯論 + 多選題 | [開始遊戲](https://gn00318361-collab.github.io/-Gender-Equality/Gender_Equality_Game_Upper_Grades.html) |
 
 **遊戲機制：** 生命值（3 顆愛心）、連擊 Combo 加分、倒數計時、音效回饋、答對撒花特效
 
