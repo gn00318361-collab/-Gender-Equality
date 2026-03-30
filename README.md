@@ -1,6 +1,6 @@
 # 🌈 國小性別平等教育教學資源包
 
-國小低、中、高年級適用的性別平等教育教學資源，包含 **影片推薦簡報** 與 **互動網頁遊戲**，可直接用於課堂教學。
+國小低、中、高年級適用的性別平等教育教學資源，包含 **影片推薦簡報** 與 **互動網頁遊戲**（含通用版），可直接用於課堂教學。
 
 ---
 
@@ -11,6 +11,7 @@
 | 低年級（一、二年級） | `Gender_Equality_Videos_Lower_Grades.pptx` | `Gender_Equality_Game_Lower_Grades.html` | 認識自己的身體，學會保護自己 |
 | 中年級（三、四年級） | `Gender_Equality_Videos_Middle_Grades.pptx` | `Gender_Equality_Game_Middle_Grades.html` | 認識性別平等，學習尊重差異 |
 | 高年級（五、六年級） | `Gender_Equality_Videos_Upper_Grades.pptx` | `Gender_Equality_Game_Upper_Grades.html` | 破除刻板印象，擁抱多元尊重 |
+| 通用版（一～六年級） | — | `Gender_Equality_Game_Universal.html` | 生活情境判斷，拖拉配對 + 選擇題 |
 
 ---
 
@@ -70,6 +71,7 @@
 | 低年級 | 性別平等小勇士 🛡️ | 8 關 | 選擇題 + 拖拉配對 | [開始遊戲](https://gn00318361-collab.github.io/-Gender-Equality/Gender_Equality_Game_Lower_Grades.html) |
 | 中年級 | 性別平等大挑戰 🤝 | 8 關 | 選擇題 + OK/不OK 判斷 + 步驟排序 | [開始遊戲](https://gn00318361-collab.github.io/-Gender-Equality/Gender_Equality_Game_Middle_Grades.html) |
 | 高年級 | 打破框架！💜 | 8 關 | 選擇題 + 觀點辯論 + 多選題 | [開始遊戲](https://gn00318361-collab.github.io/-Gender-Equality/Gender_Equality_Game_Upper_Grades.html) |
+| 通用版 | 性別平等小學堂 🌈 | 5 關 | 拖拉配對 + 選擇題 | [開始遊戲](https://gn00318361-collab.github.io/-Gender-Equality/Gender_Equality_Game_Universal.html) |
 
 **遊戲機制：** 生命值（3 顆愛心）、連擊 Combo 加分、倒數計時、音效回饋、答對撒花特效
 
@@ -78,6 +80,8 @@
 **中年級** — 涵蓋：身體界線、認識性騷擾、同理心、網路騷擾
 
 **高年級** — 涵蓋：性別刻板印象、玫瑰少年事件、迷思破解、情感教育、性別平等教育法
+
+**通用版** — 涵蓋：刻板印象破解、校園情境判斷、求助管道配對、家庭分工觀念、尊重與不尊重辨別
 
 ---
 
@@ -119,7 +123,8 @@
 ├── Gender_Equality_Videos_Upper_Grades.pptx
 ├── Gender_Equality_Game_Lower_Grades.html
 ├── Gender_Equality_Game_Middle_Grades.html
-└── Gender_Equality_Game_Upper_Grades.html
+├── Gender_Equality_Game_Upper_Grades.html
+└── Gender_Equality_Game_Universal.html
 ```
 
 ---
