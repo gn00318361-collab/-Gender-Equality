@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>性別平等小學堂 — 1~6 年級通用版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear-gradient(135deg,#FFF7ED 0%,#FEF0E4 100%);min-height:100vh}
+.game-container{max-width:800px;margin:0 auto;padding:20px;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.screen{display:none;width:100%;animation:fadeIn .5s ease}
+.screen.active{display:block}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@keyframes heartBeat{0%,100%{transform:scale(1)}25%{transform:scale(1.3)}}
+@keyframes confettiPop{0%{opacity:1;transform:translateY(0) scale(1) rotate(0deg)}100%{opacity:0;transform:translateY(-80px) scale(0.5) rotate(360deg)}}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+@keyframes timerLow{0%,100%{color:#E63946}50%{color:#FF6B6B}}
+@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
+@keyframes dropIn{from{opacity:0;transform:translateY(-20px) scale(0.8)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes bounceIn{0%{transform:scale(0)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+
+/* Title */
+.title-screen{text-align:center;padding:40px 20px;background:linear-gradient(135deg,#FF9A56 0%,#FF6B8A 50%,#A855F7 100%);border-radius:30px;color:white;box-shadow:0 10px 40px rgba(255,107,138,.3)}
+.title-screen h1{font-size:2.5em;margin-bottom:10px;text-shadow:2px 2px 4px rgba(0,0,0,.2)}
+.title-screen .subtitle{font-size:1.2em;margin-bottom:8px;opacity:.9}
+.title-screen .grade{font-size:1em;margin-bottom:30px;opacity:.8}
+.title-screen .mascot{font-size:5em;margin:20px 0}
+
+.btn{display:inline-block;padding:15px 40px;border-radius:50px;border:none;font-size:1.2em;font-family:inherit;cursor:pointer;transition:all .3s;font-weight:bold;box-shadow:0 4px 15px rgba(0,0,0,.15)}
+.btn:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.btn-start{background:white;color:#FF6B8A}
+.btn-next{background:linear-gradient(135deg,#FF9A56,#FF6B8A);color:white;margin-top:20px}
+
+/* HUD */
+.game-hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding:15px 20px;background:white;border-radius:20px;box-shadow:0 4px 12px rgba(0,0,0,.08);font-weight:bold;flex-wrap:wrap;gap:10px}
+.lives-display{display:flex;gap:6px;font-size:1.4em}
+.heart{display:inline-block;transition:all .3s}
+.heart.lost{opacity:.2;transform:scale(.8)}
+.heart.shake{animation:shake .4s ease}
+.score-combo-display{display:flex;gap:15px;align-items:center}
+.combo-display{display:none;align-items:center;gap:4px;font-size:1.1em;color:#FF6B8A;animation:pulse .4s ease}
+.combo-display.active{display:flex}
+
+/* Timer */
+.timer-container{position:relative;width:70px;height:70px;margin:10px auto}
+.timer-circle{width:100%;height:100%;border-radius:50%;background:conic-gradient(#FF6B8A var(--percentage),#FFE0E6 0);display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.4em;color:#FF6B8A;box-shadow:inset 0 0 0 3px white;transition:color .2s}
+.timer-circle.warning{animation:timerLow .5s ease infinite}
+
+/* Progress */
+.progress-bar{width:100%;height:12px;background:#FFE0E6;border-radius:10px;margin:12px 0;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#FF9A56,#FF6B8A,#A855F7);border-radius:10px;transition:width .5s ease}
+.progress-text{text-align:center;color:#FF6B8A;font-size:.9em;font-weight:bold}
+
+/* Game Card */
+.game-card{background:white;border-radius:24px;padding:30px;box-shadow:0 8px 30px rgba(0,0,0,.08);width:100%;position:relative;overflow:hidden;transition:all .3s}
+.game-card::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;background:linear-gradient(90deg,#FF9A56,#FF6B8A,#A855F7)}
+.game-card.shake-anim{animation:shake .5s ease}
+
+.level-badge{display:inline-block;background:linear-gradient(135deg,#FF9A56,#FF6B8A);color:white;padding:5px 16px;border-radius:20px;font-size:.85em;font-weight:bold;margin-bottom:15px}
+.question-text{font-size:1.25em;color:#333;margin-bottom:10px;line-height:1.6}
+.question-hint{font-size:.9em;color:#aaa;margin-bottom:15px}
+.scenario-emoji{font-size:3.5em;text-align:center;margin:10px 0}
+.scenario-box{background:#FFF7ED;border-radius:16px;padding:18px;margin:12px 0;border-left:4px solid #FF9A56;font-size:1.05em;line-height:1.7;color:#444}
+
+/* Choice options */
+.options{display:flex;flex-direction:column;gap:12px;margin-top:15px}
+.option-btn{padding:16px 20px;border-radius:16px;border:3px solid #FFE0E6;background:#FFFAFA;font-size:1.05em;font-family:inherit;cursor:pointer;transition:all .3s;text-align:left;color:#444}
+.option-btn:hover{border-color:#FF6B8A;background:#FFF0F3;transform:scale(1.02)}
+.option-btn.correct{border-color:#4CAF50;background:#E8F5E9;color:#2E7D32}
+.option-btn.wrong{border-color:#F44336;background:#FFEBEE;color:#C62828}
+.option-btn.disabled{pointer-events:none;opacity:.7}
+
+/* Drag & Drop Matching */
+.match-area{display:flex;gap:30px;margin-top:20px;justify-content:center;flex-wrap:wrap}
+.match-column{flex:1;min-width:200px;display:flex;flex-direction:column;gap:12px}
+.match-column-title{text-align:center;font-weight:bold;font-size:1.1em;padding:10px;border-radius:12px;margin-bottom:5px}
+.match-left-title{background:#FFE0E6;color:#FF6B8A}
+.match-right-title{background:#E0F2FE;color:#3B82F6}
+
+.drag-item{padding:14px 18px;border-radius:14px;border:3px solid #FFE0E6;background:white;font-size:1em;cursor:grab;transition:all .2s;user-select:none;touch-action:none;text-align:center;position:relative}
+.drag-item:active{cursor:grabbing;transform:scale(1.05);box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:10}
+.drag-item.dragging{opacity:.5;border-style:dashed}
+.drag-item.matched{border-color:#4CAF50;background:#E8F5E9;cursor:default;pointer-events:none}
+.drag-item.wrong-match{border-color:#F44336;background:#FFEBEE;animation:shake .4s ease}
+
+.drop-zone{padding:14px 18px;border-radius:14px;border:3px dashed #93C5FD;background:#F0F7FF;font-size:1em;min-height:50px;display:flex;align-items:center;justify-content:center;transition:all .2s;color:#93C5FD;text-align:center}
+.drop-zone.hover{border-color:#3B82F6;background:#DBEAFE;transform:scale(1.03)}
+.drop-zone.filled{border-style:solid;border-color:#3B82F6;background:#EFF6FF;color:#333;cursor:pointer}
+.drop-zone.correct{border-color:#4CAF50;background:#E8F5E9}
+.drop-zone.wrong{border-color:#F44336;background:#FFEBEE;animation:shake .4s ease}
+
+/* Feedback */
+.feedback{margin-top:18px;padding:16px 20px;border-radius:16px;font-size:1em;line-height:1.6;animation:fadeIn .3s ease}
+.feedback.correct{background:#E8F5E9;color:#2E7D32;border-left:4px solid #4CAF50}
+.feedback.wrong{background:#FFF3E0;color:#E65100;border-left:4px solid #FFB347}
+
+/* Floating effects */
+.floating-score{position:fixed;font-weight:bold;font-size:1.3em;pointer-events:none;animation:floatUp 1s ease-out forwards;z-index:100}
+.floating-score.correct{color:#4CAF50}
+.floating-score.wrong{color:#E63946}
+.confetti-particle{position:fixed;pointer-events:none;font-size:1.5em;animation:confettiPop .8s ease-out forwards;z-index:100}
+
+/* Result */
+.result-screen{text-align:center;padding:40px 20px}
+.result-card{background:white;border-radius:24px;padding:40px;box-shadow:0 8px 30px rgba(0,0,0,.08)}
+.result-emoji{font-size:5em;margin-bottom:15px}
+.result-title{font-size:2em;background:linear-gradient(135deg,#FF9A56,#FF6B8A);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px}
+.result-score{font-size:1.3em;color:#666;margin-bottom:5px}
+.result-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0;text-align:left}
+.result-stat{background:#FFF7ED;padding:12px;border-radius:12px;border-left:4px solid #FF6B8A}
+.result-stat-label{font-size:.85em;color:#888}
+.result-stat-value{font-size:1.2em;font-weight:bold;color:#FF6B8A}
+.result-msg{font-size:1.1em;color:#888;margin:15px 0 25px 0;line-height:1.6;white-space:pre-line}
+.stars{font-size:2.5em;margin:15px 0}
+
+/* Game Over */
+.gameover-card{background:white;border-radius:24px;padding:40px;box-shadow:0 8px 30px rgba(0,0,0,.08);text-align:center}
+.gameover-emoji{font-size:4em;margin-bottom:15px}
+.gameover-title{font-size:2em;color:#E63946;margin-bottom:15px}
+.gameover-msg{font-size:1.1em;color:#666;margin-bottom:30px}
+
+@media(max-width:600px){
+  .title-screen h1{font-size:1.8em}
+  .game-card{padding:20px}
+  .question-text{font-size:1.1em}
+  .match-area{flex-direction:column;gap:20px}
+  .match-column{min-width:unset}
+  .game-hud{flex-direction:column;align-items:flex-start}
+  .score-combo-display{width:100%;justify-content:space-between}
+  .result-stats{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="game-container" id="app">
+
+  <!-- Title Screen -->
+  <div class="screen active" id="titleScreen">
+    <div class="title-screen">
+      <div class="mascot">🌈</div>
+      <h1>性別平等小學堂</h1>
+      <div class="subtitle">生活情境大挑戰</div>
+      <div class="grade">1～6 年級通用</div>
+      <button class="btn btn-start" onclick="startGame()">開始挑戰！🚀</button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div class="screen" id="gameScreen">
+    <div class="game-hud">
+      <div class="lives-display" id="livesDisplay"></div>
+      <div class="score-combo-display">
+        <div>⭐ <span id="scoreDisplay">0</span> 分</div>
+        <div class="combo-display" id="comboDisplay">🔥x<span id="comboValue">0</span></div>
+      </div>
+    </div>
+    <div class="timer-container" id="timerContainer" style="display:none">
+      <div class="timer-circle" id="timerCircle" style="--percentage:100%">20</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-text" id="progressText">第 1 關 / 共 5 關</div>
+    <div class="game-card" id="gameCard"></div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div class="screen" id="gameoverScreen">
+    <div class="gameover-card">
+      <div class="gameover-emoji">💔</div>
+      <div class="gameover-title">遊戲結束</div>
+      <div class="gameover-msg">沒關係，再試一次吧！<br>每次都會學到新東西！</div>
+      <div style="font-size:1.2em;color:#FF6B8A;font-weight:bold;margin-bottom:20px">最終分數：<span id="gameoverScore">0</span> 分</div>
+      <button class="btn btn-start" onclick="startGame()">重新開始 🎮</button>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div class="screen" id="resultScreen">
+    <div class="result-card">
+      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="stars" id="resultStars"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-score" id="resultScore"></div>
+      <div class="result-stats" id="resultStats"></div>
+      <div class="result-msg" id="resultMsg"></div>
+      <button class="btn btn-start" onclick="startGame()">再玩一次 🌟</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== LEVEL DATA =====
+const levels = [
+  {
+    type: "match",
+    badge: "🚫 刻板印象破解",
+    question: "這些話是「刻板印象」！把每句話配對到正確的破解方式。",
+    hint: "把左邊的刻板印象拖到右邊對應的事實",
+    pairs: [
+      { left: "「男生不可以哭」", right: "😢 每個人都有流淚的權利" },
+      { left: "「女生數學比較差」", right: "🧮 數學能力跟性別無關" },
+      { left: "「護士只有女生能當」", right: "👨‍⚕️ 很多男生也是優秀護理師" },
+      { left: "「粉紅色是女生的」", right: "🎨 顏色沒有分性別" },
+    ],
+    correctMsg: "太棒了！這些刻板印象都不是真的。每個人都可以自由選擇自己的興趣和喜好，不受性別限制！",
+    wrongMsg: "男生可以哭、女生數學也很強、男生也能當護理師、顏色不分性別——這些才是事實喔！"
+  },
+  {
+    type: "choice",
+    badge: "🏫 校園情境",
+    emoji: "🤔",
+    scenario: "下課時間，小明對小美說：「你是女生，所以不能跟我們一起打籃球！」",
+    question: "你覺得最好的回應是什麼？",
+    options: [
+      { text: "🌈 「打籃球不分男女，大家一起玩更好玩！」", correct: true },
+      { text: "😞 「算了，女生本來就不適合打球。」", correct: false },
+      { text: "😡 「那你也不准玩跳繩！」", correct: false },
+    ],
+    correctMsg: "答對了！運動不分性別，每個人都有權利參加自己喜歡的活動。一起玩更開心！",
+    wrongMsg: "最好的方式是告訴大家：運動不分男女！每個人都可以參加自己喜歡的運動喔。"
+  },
+  {
+    type: "match",
+    badge: "🛡️ 求助管道配對",
+    question: "遇到不同狀況，要打給誰求助？把情境和電話配對起來！",
+    hint: "把左邊的狀況拖到右邊正確的求助方式",
+    pairs: [
+      { left: "被大人打或虐待", right: "📞 打 113 保護專線" },
+      { left: "在學校被同學霸凌", right: "🏫 告訴導師或輔導室" },
+      { left: "網路上被陌生人騷擾", right: "📱 截圖＋告訴爸媽" },
+      { left: "路上被跟蹤覺得害怕", right: "🚨 跑進商店求助或打 110" },
+    ],
+    correctMsg: "你好棒！記住：被虐待打 113、校園霸凌找老師、網路騷擾截圖告訴家人、被跟蹤跑進商店或打 110！",
+    wrongMsg: "正確配對：被虐待→113、霸凌→老師輔導室、網路騷擾→截圖告訴爸媽、被跟蹤→跑進商店或打110！"
+  },
+  {
+    type: "choice",
+    badge: "💬 日常對話",
+    emoji: "🗣️",
+    scenario: "小華的爸爸每天負責煮晚餐和接小孩放學。有同學笑小華說：「你爸爸怎麼像媽媽一樣！」",
+    question: "你覺得小華可以怎麼回答？",
+    options: [
+      { text: "😊 「我爸爸煮的菜超好吃的！照顧家人不分爸爸媽媽。」", correct: true },
+      { text: "😣 覺得很丟臉，不想說話", correct: false },
+      { text: "😤 「你才奇怪！」", correct: false },
+    ],
+    correctMsg: "說得好！照顧家庭不分爸爸媽媽，煮飯、打掃、接送小孩，每個家人都可以做。這是很棒的事！",
+    wrongMsg: "照顧家人不是只有媽媽才能做的事喔！爸爸煮飯、接小孩都是很正常、很棒的事！"
+  },
+  {
+    type: "match",
+    badge: "🌟 誰說的才對？",
+    question: "同學們在討論性別的事，誰說的才是對的？把每個人的話配對到正確或錯誤。",
+    hint: "把左邊的話拖到右邊的判斷",
+    pairs: [
+      { left: "小安：「喜歡一個人，對方說不要就該停止」", right: "✅ 正確！尊重別人的意願" },
+      { left: "小豪：「被欺負是因為你太弱了」", right: "❌ 錯！被欺負不是受害者的錯" },
+      { left: "小美：「每個人的身體界線不一樣」", right: "✅ 正確！要尊重每個人的感受" },
+      { left: "小明：「開玩笑而已，幹嘛生氣」", right: "❌ 錯！讓人不舒服就不是玩笑" },
+    ],
+    correctMsg: "🎉 太厲害了！小安和小美說的是對的——尊重意願、尊重感受。小豪和小明的觀念需要改正喔！",
+    wrongMsg: "小安（尊重說不）和小美（尊重界線）是對的。小豪（怪受害者）和小明（強迫接受玩笑）是錯的！"
+  },
+];
+
+// ===== GAME STATE =====
+let currentLevel = 0, score = 0, answered = false, lives = 3, combo = 0, maxCombo = 0;
+let timerInterval = null, timeLeft = 20;
+const TIMER_MAX = 20;
+let matchState = {};
+
+// ===== AUDIO =====
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playSound(type) {
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === 'correct') {
+      osc.frequency.setValueAtTime(523, now);
+      osc.frequency.exponentialRampToValueAtTime(1047, now + 0.15);
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+      osc.start(now); osc.stop(now + 0.15);
+    } else if (type === 'wrong') {
+      osc.frequency.setValueAtTime(500, now);
+      osc.frequency.exponentialRampToValueAtTime(250, now + 0.25);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+      osc.start(now); osc.stop(now + 0.25);
+    } else if (type === 'tick') {
+      osc.frequency.setValueAtTime(880, now);
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+      osc.start(now); osc.stop(now + 0.05);
+    } else if (type === 'drop') {
+      osc.frequency.setValueAtTime(660, now);
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+      osc.start(now); osc.stop(now + 0.08);
+    }
+  } catch(e) {}
+}
+
+// ===== EFFECTS =====
+function createConfetti() {
+  const emojis = ['🎉','✨','⭐','🌟','💫','🌈','💖'];
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-particle';
+    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    p.style.left = (10 + Math.random() * 80) + '%';
+    p.style.top = (30 + Math.random() * 40) + '%';
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 800);
+  }
+}
+function createFloatingScore(x, y, points, isCorrect) {
+  const f = document.createElement('div');
+  f.className = 'floating-score ' + (isCorrect ? 'correct' : 'wrong');
+  f.textContent = isCorrect ? '+' + points + ' 🔥' : '-1 ❤️';
+  f.style.left = x + 'px';
+  f.style.top = y + 'px';
+  document.body.appendChild(f);
+  setTimeout(() => f.remove(), 1000);
+}
+
+// ===== HUD =====
+function updateLives() {
+  const el = document.getElementById('livesDisplay');
+  let html = '';
+  for (let i = 0; i < 3; i++) {
+    html += '<span class="heart' + (i >= lives ? ' lost' : '') + '">❤️</span>';
+  }
+  el.innerHTML = html;
+  if (lives <= 0) { setTimeout(showGameover, 300); }
+}
+function updateCombo() {
+  const el = document.getElementById('comboDisplay');
+  if (combo > 1) {
+    el.classList.add('active');
+    document.getElementById('comboValue').textContent = combo;
+  } else {
+    el.classList.remove('active');
+  }
+  if (combo > maxCombo) maxCombo = combo;
+}
+function updateProgress() {
+  document.getElementById('progressFill').style.width = ((currentLevel / levels.length) * 100) + '%';
+  document.getElementById('progressText').textContent = '第 ' + (currentLevel + 1) + ' 關 / 共 ' + levels.length + ' 關';
+  document.getElementById('scoreDisplay').textContent = score;
+}
+
+// ===== TIMER =====
+function startTimer() {
+  timeLeft = TIMER_MAX;
+  document.getElementById('timerContainer').style.display = 'block';
+  updateTimerDisplay();
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(function() {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 5 && timeLeft > 0) playSound('tick');
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) { answered = true; handleTimeout(); }
+    }
+  }, 1000);
+}
+function updateTimerDisplay() {
+  const circle = document.getElementById('timerCircle');
+  circle.style.setProperty('--percentage', (timeLeft / TIMER_MAX * 100) + '%');
+  circle.textContent = timeLeft;
+  if (timeLeft <= 5) circle.classList.add('warning');
+  else circle.classList.remove('warning');
+}
+function handleTimeout() {
+  const card = document.getElementById('gameCard');
+  card.classList.add('shake-anim');
+  lives--; combo = 0;
+  updateLives(); updateCombo();
+  playSound('wrong');
+  disableAll();
+  showFeedbackEl('⏰ 時間到了！下次要更快哦！', false);
+  setTimeout(function() {
+    card.classList.remove('shake-anim');
+    showNextBtn();
+  }, 500);
+}
+
+// ===== SCREENS =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  currentLevel = 0; score = 0; answered = false; lives = 3; combo = 0; maxCombo = 0;
+  matchState = {};
+  updateLives(); updateCombo();
+  showScreen('gameScreen');
+  renderLevel();
+}
+
+// ===== RENDER =====
+function renderLevel() {
+  answered = false;
+  matchState = {};
+  updateProgress();
+  if (timerInterval) clearInterval(timerInterval);
+  const lv = levels[currentLevel];
+  const card = document.getElementById('gameCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'fadeIn .5s ease';
+
+  if (lv.type === 'choice') {
+    card.innerHTML =
+      '<span class="level-badge">' + lv.badge + '</span>' +
+      '<div class="scenario-emoji">' + lv.emoji + '</div>' +
+      (lv.scenario ? '<div class="scenario-box">' + lv.scenario + '</div>' : '') +
+      '<div class="question-text">' + lv.question + '</div>' +
+      '<div class="options">' + lv.options.map(function(o, i) {
+        return '<button class="option-btn" onclick="selectOption(' + i + ')">' + o.text + '</button>';
+      }).join('') + '</div>' +
+      '<div id="feedback"></div><div id="nextArea"></div>';
+  } else if (lv.type === 'match') {
+    renderMatchLevel(lv, card);
+  }
+
+  startTimer();
+}
+
+// ===== MATCH LEVEL (Drag & Drop) =====
+function renderMatchLevel(lv, card) {
+  // Shuffle right side
+  const rightShuffled = lv.pairs.map(function(p, i) { return { text: p.right, origIdx: i }; });
+  for (let i = rightShuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = rightShuffled[i]; rightShuffled[i] = rightShuffled[j]; rightShuffled[j] = t;
+  }
+
+  matchState = { pairs: lv.pairs, matched: {}, rightMap: rightShuffled, totalPairs: lv.pairs.length };
+
+  let leftHTML = '<div class="match-column"><div class="match-column-title match-left-title">📌 題目</div>';
+  lv.pairs.forEach(function(p, i) {
+    leftHTML += '<div class="drag-item" draggable="true" data-idx="' + i + '" id="drag-' + i + '"' +
+      ' ontouchstart="touchStart(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)">' +
+      p.left + '</div>';
+  });
+  leftHTML += '</div>';
+
+  let rightHTML = '<div class="match-column"><div class="match-column-title match-right-title">🎯 配對</div>';
+  rightShuffled.forEach(function(item, i) {
+    rightHTML += '<div class="drop-zone" data-orig="' + item.origIdx + '" id="drop-' + i + '">❓ ' + item.text + '</div>';
+  });
+  rightHTML += '</div>';
+
+  card.innerHTML =
+    '<span class="level-badge">' + lv.badge + '</span>' +
+    '<div class="question-text">' + lv.question + '</div>' +
+    '<div class="question-hint">' + (lv.hint || '') + '</div>' +
+    '<div class="match-area">' + leftHTML + rightHTML + '</div>' +
+    '<div id="feedback"></div><div id="nextArea"></div>';
+
+  // Desktop drag events
+  card.querySelectorAll('.drag-item').forEach(function(el) {
+    el.addEventListener('dragstart', function(e) {
+      e.dataTransfer.setData('text/plain', el.dataset.idx);
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dragend', function() { el.classList.remove('dragging'); });
+  });
+  card.querySelectorAll('.drop-zone').forEach(function(zone) {
+    zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('hover'); });
+    zone.addEventListener('dragleave', function() { zone.classList.remove('hover'); });
+    zone.addEventListener('drop', function(e) {
+      e.preventDefault();
+      zone.classList.remove('hover');
+      const dragIdx = parseInt(e.dataTransfer.getData('text/plain'));
+      handleMatchDrop(dragIdx, parseInt(zone.dataset.orig), zone);
+    });
+  });
+}
+
+// ===== TOUCH DRAG =====
+let touchDragEl = null, touchClone = null;
+function touchStart(e) {
+  if (answered) return;
+  const el = e.currentTarget;
+  if (el.classList.contains('matched')) return;
+  touchDragEl = el;
+  el.classList.add('dragging');
+  // Create floating clone
+  touchClone = el.cloneNode(true);
+  touchClone.style.position = 'fixed';
+  touchClone.style.zIndex = '1000';
+  touchClone.style.pointerEvents = 'none';
+  touchClone.style.opacity = '0.85';
+  touchClone.style.width = el.offsetWidth + 'px';
+  touchClone.style.transform = 'scale(1.08)';
+  touchClone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
+  document.body.appendChild(touchClone);
+  const touch = e.touches[0];
+  touchClone.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
+  touchClone.style.top = (touch.clientY - 30) + 'px';
+}
+function touchMove(e) {
+  if (!touchClone) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchClone.style.left = (touch.clientX - touchClone.offsetWidth / 2) + 'px';
+  touchClone.style.top = (touch.clientY - 30) + 'px';
+  // Highlight drop zone
+  document.querySelectorAll('.drop-zone').forEach(function(z) { z.classList.remove('hover'); });
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (target && target.classList.contains('drop-zone')) target.classList.add('hover');
+}
+function touchEnd(e) {
+  if (!touchDragEl || !touchClone) return;
+  touchDragEl.classList.remove('dragging');
+  touchClone.remove();
+  touchClone = null;
+  const touch = e.changedTouches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (target && target.classList.contains('drop-zone')) {
+    target.classList.remove('hover');
+    handleMatchDrop(parseInt(touchDragEl.dataset.idx), parseInt(target.dataset.orig), target);
+  }
+  touchDragEl = null;
+}
+
+function handleMatchDrop(dragIdx, dropOrigIdx, zoneEl) {
+  if (answered) return;
+  if (matchState.matched[dragIdx] !== undefined) return;
+
+  const isCorrect = dragIdx === dropOrigIdx;
+  const dragEl = document.getElementById('drag-' + dragIdx);
+
+  if (isCorrect) {
+    playSound('drop');
+    dragEl.classList.add('matched');
+    zoneEl.classList.add('correct');
+    zoneEl.classList.add('filled');
+    matchState.matched[dragIdx] = true;
+
+    // Check if all matched
+    if (Object.keys(matchState.matched).length === matchState.totalPairs) {
+      answered = true;
+      if (timerInterval) clearInterval(timerInterval);
+      combo++;
+      const timeBonus = Math.max(0, Math.floor(timeLeft / 2));
+      const points = 15 + timeBonus + (combo > 1 ? combo * 3 : 0);
+      score += points;
+      createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, points, true);
+      createConfetti();
+      updateCombo();
+      document.getElementById('scoreDisplay').textContent = score;
+      showFeedbackEl(levels[currentLevel].correctMsg, true);
+      showNextBtn();
+    }
+  } else {
+    playSound('wrong');
+    zoneEl.classList.add('wrong');
+    dragEl.classList.add('wrong-match');
+    setTimeout(function() {
+      zoneEl.classList.remove('wrong');
+      dragEl.classList.remove('wrong-match');
+    }, 600);
+  }
+}
+
+// ===== CHOICE =====
+function selectOption(idx) {
+  if (answered) return;
+  answered = true;
+  if (timerInterval) clearInterval(timerInterval);
+  const lv = levels[currentLevel];
+  const timeBonus = Math.max(0, Math.floor(timeLeft / 2));
+  const ok = lv.options[idx].correct;
+  const card = document.getElementById('gameCard');
+
+  document.querySelectorAll('.option-btn').forEach(function(b, i) {
+    b.classList.add('disabled');
+    if (lv.options[i].correct) b.classList.add('correct');
+    if (i === idx && !ok) b.classList.add('wrong');
+  });
+
+  if (ok) {
+    playSound('correct');
+    combo++;
+    const points = 10 + timeBonus + (combo > 1 ? combo * 2 : 0);
+    score += points;
+    createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, points, true);
+    createConfetti();
+    updateCombo();
+  } else {
+    playSound('wrong');
+    card.classList.add('shake-anim');
+    lives--; combo = 0;
+    updateLives(); updateCombo();
+    setTimeout(function() { card.classList.remove('shake-anim'); }, 500);
+  }
+
+  document.getElementById('scoreDisplay').textContent = score;
+  showFeedbackEl(ok ? lv.correctMsg : lv.wrongMsg, ok);
+  showNextBtn();
+}
+
+// ===== HELPERS =====
+function disableAll() {
+  document.querySelectorAll('.option-btn, .drag-item').forEach(function(el) {
+    el.classList.add('disabled');
+    el.style.pointerEvents = 'none';
+  });
+}
+function showFeedbackEl(msg, ok) {
+  document.getElementById('feedback').innerHTML =
+    '<div class="feedback ' + (ok ? 'correct' : 'wrong') + '">' +
+    '<span>' + (ok ? '✅' : '💡') + '</span> ' + msg + '</div>';
+}
+function showNextBtn() {
+  const label = currentLevel < levels.length - 1 ? '下一關 ➜' : '看結果 🎉';
+  document.getElementById('nextArea').innerHTML =
+    '<div style="text-align:center"><button class="btn btn-next" onclick="nextLevel()">' + label + '</button></div>';
+}
+function nextLevel() {
+  currentLevel++;
+  if (currentLevel >= levels.length) showResult();
+  else { renderLevel(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+}
+
+// ===== GAME OVER =====
+function showGameover() {
+  if (timerInterval) clearInterval(timerInterval);
+  document.getElementById('gameoverScore').textContent = score;
+  showScreen('gameoverScreen');
+}
+
+// ===== RESULT =====
+function showResult() {
+  if (timerInterval) clearInterval(timerInterval);
+  showScreen('resultScreen');
+  const maxScore = 80;
+  const pct = score / maxScore;
+  let emoji, title, msg, stars;
+  if (pct >= 0.85) {
+    emoji = '🏆'; title = '超級厲害！'; stars = '⭐⭐⭐';
+    msg = '你是性別平等小達人！\n你知道每個人都值得被尊重！';
+  } else if (pct >= 0.5) {
+    emoji = '😊'; title = '做得很好！'; stars = '⭐⭐';
+    msg = '你已經學到很多了！\n繼續保持尊重和善良！';
+  } else {
+    emoji = '💪'; title = '繼續加油！'; stars = '⭐';
+    msg = '沒關係，每次嘗試都會更進步！\n再玩一次試試看吧！';
+  }
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').textContent = '最終分數：' + score + ' 分';
+  document.getElementById('resultStats').innerHTML =
+    '<div class="result-stat"><div class="result-stat-label">最高連擊</div><div class="result-stat-value">🔥x' + maxCombo + '</div></div>' +
+    '<div class="result-stat"><div class="result-stat-label">剩餘生命</div><div class="result-stat-value">' + (lives > 0 ? '❤️'.repeat(lives) : '💔') + '</div></div>' +
+    '<div class="result-stat"><div class="result-stat-label">總關卡</div><div class="result-stat-value">' + levels.length + '/' + levels.length + '</div></div>' +
+    '<div class="result-stat"><div class="result-stat-label">總分</div><div class="result-stat-value">⭐ ' + score + '</div></div>';
+  document.getElementById('resultMsg').textContent = msg;
+}
+</script>
+</body>
+</html>
