@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打破框架！— 高年級性平互動遊戲</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; background: #FCF5F0; min-height: 100vh; }
+.game-container { max-width: 800px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.screen { display: none; width: 100%; animation: fadeIn 0.5s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes slideOutLeft { to { opacity: 0; transform: translateX(-30px); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+@keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+@keyframes float-up { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-50px); } }
+@keyframes confetti { 0% { opacity: 1; transform: translateY(0) rotate(0deg); } 100% { opacity: 0; transform: translateY(-80px) rotate(360deg); } }
+@keyframes pulse-fire { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+@keyframes slide-up { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.title-screen {
+  text-align: center; padding: 40px 20px;
+  background: linear-gradient(135deg, #6D2E46 0%, #A26769 50%, #D48B8B 100%);
+  border-radius: 30px; color: white; box-shadow: 0 10px 40px rgba(109,46,70,0.3);
+}
+.title-screen h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.title-screen .subtitle { font-size: 1.2em; margin-bottom: 8px; opacity: 0.9; }
+.title-screen .grade { font-size: 1em; margin-bottom: 30px; opacity: 0.8; }
+.title-screen .mascot { font-size: 5em; margin: 20px 0; }
+
+.btn { display: inline-block; padding: 15px 40px; border-radius: 50px; border: none; font-size: 1.2em; font-family: inherit; cursor: pointer; transition: all 0.3s; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+.btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+.btn-start { background: white; color: #6D2E46; }
+.btn-next { background: #6D2E46; color: white; margin-top: 20px; }
+
+/* HUD SECTION */
+.hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%; }
+.hud-lives { font-size: 2em; display: flex; gap: 5px; }
+.heart { display: inline-block; animation: heartbeat 0.3s ease; }
+.heart.lost { animation: shake 0.4s ease, fadeOut 0.3s ease 0.3s forwards; }
+@keyframes fadeOut { to { opacity: 0; transform: scale(0.5); } }
+
+.hud-score { text-align: center; flex: 1; }
+.score-display { font-size: 1.1em; color: #6D2E46; font-weight: bold; }
+
+.hud-combo { text-align: right; font-size: 1.3em; min-width: 80px; }
+.combo-text { animation: pulse-fire 0.6s ease infinite; }
+
+.timer-container { position: relative; width: 80px; height: 80px; margin: 10px auto; }
+.timer-circle { position: absolute; width: 80px; height: 80px; border-radius: 50%; border: 4px solid #D48B8B; transform: rotate(-90deg); }
+.timer-fill { position: absolute; width: 80px; height: 80px; border-radius: 50%; border: 4px solid transparent; border-top-color: #6D2E46; border-right-color: #6D2E46; transform: rotate(-90deg); transition: border-color 0.2s; }
+.timer-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.8em; font-weight: bold; color: #6D2E46; }
+.timer-text.warning { color: #F44336; animation: pulse 0.5s ease infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+.progress-bar { width: 100%; height: 12px; background: #F0D9D9; border-radius: 10px; margin: 15px 0; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #6D2E46, #D48B8B); border-radius: 10px; transition: width 0.5s ease; }
+.progress-text { text-align: center; color: #6D2E46; font-size: 0.9em; font-weight: bold; }
+
+.game-card {
+  background: white; border-radius: 24px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  width: 100%; position: relative; overflow: hidden;
+}
+.game-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #6D2E46, #A26769, #D48B8B); }
+.game-card.shake { animation: shake 0.3s ease; }
+
+.confetti-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; overflow: hidden; }
+.confetti { position: absolute; width: 8px; height: 8px; }
+
+.level-badge { display: inline-block; background: #6D2E46; color: white; padding: 5px 16px; border-radius: 20px; font-size: 0.85em; font-weight: bold; margin-bottom: 15px; }
+.question-text { font-size: 1.3em; color: #333; margin-bottom: 5px; line-height: 1.6; }
+.question-hint { font-size: 0.95em; color: #999; margin-bottom: 20px; }
+.scenario-emoji { font-size: 3.5em; text-align: center; margin: 15px 0; }
+.scenario-box {
+  background: #FCF5F0; border-radius: 16px; padding: 20px; margin: 15px 0;
+  border-left: 4px solid #D48B8B; font-size: 1.05em; line-height: 1.7; color: #444;
+}
+.debate-box {
+  display: flex; gap: 15px; margin: 15px 0; flex-wrap: wrap;
+}
+.debate-side {
+  flex: 1; min-width: 200px; padding: 16px; border-radius: 16px; cursor: pointer;
+  border: 3px solid #F0D9D9; transition: all 0.3s; background: #FFF8F5;
+}
+.debate-side:hover { border-color: #6D2E46; transform: scale(1.02); }
+.debate-side h4 { color: #6D2E46; margin-bottom: 8px; }
+.debate-side p { font-size: 0.95em; color: #666; line-height: 1.5; }
+.debate-side.selected { border-color: #6D2E46; background: #F8E8ED; box-shadow: 0 0 0 3px rgba(109,46,70,0.15); }
+.debate-side.correct { border-color: #4CAF50; background: #E8F5E9; }
+.debate-side.wrong { border-color: #F44336; background: #FFEBEE; }
+.debate-side.disabled { pointer-events: none; opacity: 0.7; }
+
+.options { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+.option-btn {
+  padding: 16px 20px; border-radius: 16px; border: 3px solid #F0D9D9;
+  background: #FFF8F5; font-size: 1.05em; font-family: inherit; cursor: pointer;
+  transition: all 0.3s; text-align: left; color: #444;
+}
+.option-btn:hover { border-color: #6D2E46; background: #FCF0EE; transform: scale(1.02); }
+.option-btn.correct { border-color: #4CAF50; background: #E8F5E9; color: #2E7D32; }
+.option-btn.wrong { border-color: #F44336; background: #FFEBEE; color: #C62828; }
+.option-btn.disabled { pointer-events: none; opacity: 0.7; }
+
+/* Multi-select */
+.multi-option {
+  padding: 14px 20px; border-radius: 16px; border: 3px solid #F0D9D9;
+  background: #FFF8F5; font-size: 1em; cursor: pointer; transition: all 0.3s;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+}
+.multi-option:hover { border-color: #A26769; }
+.multi-option.selected { border-color: #6D2E46; background: #F8E8ED; }
+.multi-option .checkbox {
+  width: 24px; height: 24px; border: 2px solid #CCC; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+  flex-shrink: 0;
+}
+.multi-option.selected .checkbox { background: #6D2E46; border-color: #6D2E46; color: white; }
+.multi-option.correct-item { border-color: #4CAF50; background: #E8F5E9; }
+.multi-option.wrong-item { border-color: #F44336; background: #FFEBEE; }
+
+.feedback { margin-top: 20px; padding: 16px 20px; border-radius: 16px; font-size: 1em; line-height: 1.6; animation: slide-up 0.3s ease; }
+.feedback.correct { background: #E8F5E9; color: #2E7D32; border-left: 4px solid #4CAF50; }
+.feedback.wrong { background: #FFF3E0; color: #E65100; border-left: 4px solid #FFB347; }
+.feedback.partial { background: #FFF8E1; color: #F57F17; border-left: 4px solid #FFC107; }
+
+.point-popup { position: fixed; font-weight: bold; font-size: 1.3em; pointer-events: none; }
+.point-popup.correct { color: #4CAF50; animation: float-up 1s ease forwards; }
+.point-popup.wrong { color: #F44336; animation: float-up 1s ease forwards; }
+
+.result-screen { text-align: center; padding: 40px 20px; }
+.result-card { background: white; border-radius: 24px; padding: 40px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.result-emoji { font-size: 5em; margin-bottom: 15px; animation: slide-up 0.5s ease; }
+.result-title { font-size: 2em; color: #6D2E46; margin-bottom: 10px; animation: slide-up 0.6s ease; }
+.result-score { font-size: 1.3em; color: #666; margin-bottom: 5px; animation: slide-up 0.7s ease; }
+.result-msg { font-size: 1.1em; color: #888; margin-bottom: 25px; line-height: 1.6; white-space: pre-line; animation: slide-up 0.8s ease; }
+.stars { font-size: 2.5em; margin: 15px 0; animation: slide-up 0.9s ease; }
+
+.stats-box { background: #FCF5F0; border-radius: 16px; padding: 20px; margin-top: 20px; text-align: left; }
+.stat-row { display: flex; justify-content: space-between; margin: 10px 0; font-size: 1em; color: #666; }
+.stat-row strong { color: #6D2E46; }
+
+.game-over-screen { text-align: center; padding: 40px 20px; }
+.game-over-card { background: white; border-radius: 24px; padding: 40px; box-shadow: 0 8px 30px rgba(0,0,0,0.08); }
+.game-over-emoji { font-size: 4em; margin-bottom: 15px; }
+.game-over-title { font-size: 2em; color: #6D2E46; margin-bottom: 20px; }
+.game-over-msg { font-size: 1.1em; color: #666; margin-bottom: 30px; }
+
+@media (max-width: 600px) {
+  .title-screen h1 { font-size: 1.8em; }
+  .game-card { padding: 20px; }
+  .question-text { font-size: 1.1em; }
+  .debate-box { flex-direction: column; }
+  .hud { flex-wrap: wrap; gap: 10px; }
+  .hud-lives { flex-basis: 100%; }
+  .timer-container { width: 60px; height: 60px; }
+  .timer-circle, .timer-fill { width: 60px; height: 60px; border-width: 3px; }
+  .timer-text { font-size: 1.4em; }
+}
+</style>
+</head>
+<body>
+<div class="game-container">
+  <!-- Title Screen -->
+  <div class="screen active" id="titleScreen">
+    <div class="title-screen">
+      <div class="mascot">💜</div>
+      <h1>打破框架！</h1>
+      <div class="subtitle">破除刻板印象，擁抱多元尊重</div>
+      <div class="grade">五、六年級適用</div>
+      <button class="btn btn-start" onclick="startGame()">開始挑戰！</button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div class="screen" id="gameScreen">
+    <div class="hud">
+      <div class="hud-lives" id="hearts">❤️❤️❤️</div>
+      <div class="hud-score">
+        <div class="score-display">⭐ 分數：<span id="scoreDisplay">0</span></div>
+      </div>
+      <div class="hud-combo" id="comboDisplay"></div>
+    </div>
+
+    <div class="timer-container" id="timerContainer">
+      <div class="timer-circle"></div>
+      <div class="timer-fill" id="timerFill"></div>
+      <div class="timer-text" id="timerText">25</div>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-text" id="progressText">第 1 關 / 共 8 關</div>
+    <div class="game-card" id="gameCard"></div>
+  </div>
+
+  <!-- Result Screen -->
+  <div class="screen" id="resultScreen">
+    <div class="result-card">
+      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="stars" id="resultStars"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-score" id="resultScore"></div>
+      <div class="result-msg" id="resultMsg"></div>
+      <div class="stats-box" id="statsBox"></div>
+      <button class="btn btn-start" onclick="startGame()">再玩一次</button>
+    </div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div class="screen" id="gameOverScreen">
+    <div class="game-over-card">
+      <div class="game-over-emoji">💔</div>
+      <div class="game-over-title">遊戲結束</div>
+      <div class="game-over-msg">你的生命用盡了！<br>別放棄，再來一次就會更熟悉這些知識喔！</div>
+      <div class="stats-box" id="gameOverStats"></div>
+      <button class="btn btn-start" onclick="startGame()">重新開始</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ GAME DATA ============ */
+const levels = [
+  {
+    type: "debate",
+    badge: "🎭 性別刻板印象",
+    emoji: "🤔",
+    scenario: "班上要選班長，小明說：「班長應該讓男生當，男生比較有領導力。」小琪不同意。",
+    question: "你覺得誰說得比較有道理？",
+    sides: [
+      { title: "🙋‍♂️ 小明的看法", text: "男生天生比較有領導能力，當班長比較適合。", correct: false },
+      { title: "🙋‍♀️ 小琪的看法", text: "領導力跟性別沒關係，不管男女都可以當好班長。", correct: true },
+    ],
+    correctMsg: "小琪說得對！領導力跟性別無關，而是跟個人能力和態度有關。歷史上有很多優秀的女性和男性領導者。",
+    wrongMsg: "再想想看！領導力是一種可以學習的能力，跟性別沒有關係。每個人都有機會成為好的領導者。",
+  },
+  {
+    type: "multi",
+    badge: "🔍 找出刻板印象",
+    question: "下面哪些是「性別刻板印象」？（可以選多個）",
+    hint: "刻板印象 = 用性別來決定一個人應該怎樣",
+    items: [
+      { text: "👦 男生不應該哭", isStereotype: true },
+      { text: "👧 女生數學一定比較差", isStereotype: true },
+      { text: "🎨 每個人都有自己擅長的事", isStereotype: false },
+      { text: "💪 搬重物一定要找男生", isStereotype: true },
+      { text: "🏃 男生女生都可以喜歡運動", isStereotype: false },
+      { text: "🍳 煮飯是女生的事", isStereotype: true },
+    ],
+    correctMsg: "太厲害了！「男生不能哭」「女生數學差」「搬東西找男生」「煮飯是女生的事」都是刻板印象。每個人都是獨特的，不應該被性別定義！",
+    wrongMsg: "正確答案是：「男生不能哭」「女生數學差」「搬重物找男生」「煮飯是女生的事」都是刻板印象。記住，能力和興趣不分性別！",
+  },
+  {
+    type: "choice",
+    badge: "🌹 玫瑰少年",
+    emoji: "🌹",
+    question: "葉永鋕因為性別氣質跟大部分男生不同，在學校遭受霸凌。這件事告訴我們什麼？",
+    options: [
+      { text: "💡 每個人都有自己的性別氣質，應該被尊重，不是被欺負", correct: true },
+      { text: "🤷 他應該表現得更像男生就不會被欺負了", correct: false },
+      { text: "😕 這種事在學校很常見，沒辦法改變", correct: false },
+    ],
+    correctMsg: "沒錯！每個人本來就有不同的個性和氣質，不應該因此被欺負。我們要創造一個讓每個人都能做自己的校園環境！",
+    wrongMsg: "要改變的不是被欺負的人，而是欺負人的行為。每個人都有權利做自己，我們應該尊重每個人的獨特性。",
+  },
+  {
+    type: "debate",
+    badge: "💬 迷思破解",
+    emoji: "⚡",
+    scenario: "有人說：「那個女生穿那麼少，難怪會被性騷擾。」",
+    question: "你同意這個說法嗎？",
+    sides: [
+      { title: "❌ 不同意", text: "穿著是個人自由，任何人都不應該因為穿著被騷擾。錯的是騷擾者，不是被害者。", correct: true },
+      { title: "⭕ 有點同意", text: "穿著確實可能引起注意，穿保守一點比較安全。", correct: false },
+    ],
+    correctMsg: "完全正確！性騷擾的責任在加害者，不在被害者。不管穿什麼、去哪裡，每個人的身體都應該被尊重。把責任推到受害者身上，是一種常見但錯誤的「迷思」！",
+    wrongMsg: "這是一個常見的迷思！性騷擾的錯在於騷擾的人，跟被害者的穿著無關。每個人不管穿什麼，身體都應該被尊重。",
+  },
+  {
+    type: "choice",
+    badge: "❤️ 情感教育",
+    emoji: "💌",
+    question: "小明喜歡小美，每天傳很多訊息、下課一直跟著她。小美已經說「請你不要再這樣了」，但小明覺得自己是在表達喜歡。這樣對嗎？",
+    options: [
+      { text: "❌ 不對。小美已經拒絕了，繼續糾纏是不尊重的行為", correct: true },
+      { text: "💕 小明只是在追求，堅持就是勝利", correct: false },
+      { text: "🤷 這是小明的事，不用管", correct: false },
+    ],
+    correctMsg: "答對了！喜歡一個人要尊重對方的意願。當對方說「不」，就應該停下來。持續騷擾不是浪漫，是不尊重！",
+    wrongMsg: "喜歡一個人不代表可以不顧對方感受。當對方說「不」就要尊重。堅持糾纏不是追求，是騷擾。",
+  },
+  {
+    type: "multi",
+    badge: "🔧 改變行動",
+    question: "我們可以怎麼讓校園變得更性別友善？（選出正確的做法）",
+    hint: "想想看，哪些做法能讓每個人都覺得被尊重",
+    items: [
+      { text: "🗣️ 同學被嘲笑性別氣質時，勇敢站出來說話", isStereotype: true },
+      { text: "🤐 看到霸凌假裝沒看到，不要惹事", isStereotype: false },
+      { text: "📣 在班上討論性別平等的議題", isStereotype: true },
+      { text: "🎯 不用性別來決定誰可以做什麼事", isStereotype: true },
+      { text: "😏 開別人性別氣質的玩笑讓大家笑", isStereotype: false },
+      { text: "🤝 尊重每個人不同的外表和個性", isStereotype: true },
+    ],
+    correctMsg: "太棒了！勇敢站出來、公開討論、打破限制、尊重每個人——這些都是讓校園更友善的行動。改變從你我開始！",
+    wrongMsg: "正確的做法是：勇敢站出來、公開討論性平議題、不用性別限制別人、尊重每個人。旁觀和嘲笑只會讓問題更嚴重。",
+  },
+  {
+    type: "choice",
+    badge: "⚖️ 法律知識",
+    emoji: "📜",
+    question: "台灣的《性別平等教育法》是因為哪一件事而從《兩性平等教育法》修改名稱的？",
+    options: [
+      { text: "🌹 葉永鋕事件", correct: true },
+      { text: "📺 某部電視劇的影響", correct: false },
+      { text: "🗳️ 公民投票的結果", correct: false },
+    ],
+    correctMsg: "沒錯！2000年葉永鋕的不幸事件推動了法律的修訂，從「兩性」改為「性別」，涵蓋更多元的性別概念。這提醒我們尊重多元的重要性。",
+    wrongMsg: "正確答案是葉永鋕事件。2000年他因為性別氣質不同而遭受霸凌，最終不幸離世。這件事推動了《性別平等教育法》的誕生。",
+  },
+  {
+    type: "choice",
+    badge: "🏆 最終挑戰",
+    emoji: "🌈",
+    question: "下面哪一句話最能代表性別平等的核心精神？",
+    options: [
+      { text: "🌈 不管性別如何，每個人都值得被尊重，都有權利做自己", correct: true },
+      { text: "⚖️ 男生和女生做一模一樣的事才叫平等", correct: false },
+      { text: "🔇 性別議題太敏感，最好不要討論", correct: false },
+    ],
+    correctMsg: "🎉 完美！性別平等不是要每個人變得一樣，而是尊重每個人的獨特性，讓每個人都有權利做自己、追求自己的夢想！",
+    wrongMsg: "性別平等的核心是「尊重」——不是要每個人一模一樣，而是讓每個人都能做自己，不因性別被限制或被歧視。",
+  },
+];
+
+/* ============ GAME STATE ============ */
+let currentLevel = 0;
+let score = 0;
+let lives = 3;
+let combo = 0;
+let answered = false;
+let timerInterval = null;
+let timeLeft = 25;
+let multiSelected = new Set();
+let totalCorrect = 0;
+let totalAnswered = 0;
+let maxCombo = 0;
+let gameStartTime = null;
+
+/* ============ AUDIO ============ */
+function playSound(type) {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  osc.connect(gain);
+  gain.connect(audioContext.destination);
+
+  if (type === 'correct') {
+    osc.frequency.setValueAtTime(523, audioContext.currentTime);
+    osc.frequency.setValueAtTime(659, audioContext.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gain.gain.setValueAtTime(0, audioContext.currentTime + 0.2);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.2);
+  } else if (type === 'wrong') {
+    osc.frequency.setValueAtTime(300, audioContext.currentTime);
+    osc.frequency.setValueAtTime(150, audioContext.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gain.gain.setValueAtTime(0, audioContext.currentTime + 0.3);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.3);
+  } else if (type === 'tick') {
+    osc.frequency.setValueAtTime(800, audioContext.currentTime);
+    gain.gain.setValueAtTime(0.05, audioContext.currentTime);
+    gain.gain.setValueAtTime(0, audioContext.currentTime + 0.05);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + 0.05);
+  }
+}
+
+/* ============ UI FUNCTIONS ============ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  currentLevel = 0;
+  score = 0;
+  lives = 3;
+  combo = 0;
+  answered = false;
+  multiSelected.clear();
+  totalCorrect = 0;
+  totalAnswered = 0;
+  maxCombo = 0;
+  gameStartTime = Date.now();
+  showScreen('gameScreen');
+  renderLevel();
+}
+
+function updateHUD() {
+  document.getElementById('scoreDisplay').textContent = score;
+  updateLives();
+  updateCombo();
+}
+
+function updateLives() {
+  const heartsEl = document.getElementById('hearts');
+  let hearts = '';
+  for (let i = 0; i < lives; i++) hearts += '❤️';
+  heartsEl.textContent = hearts;
+}
+
+function updateCombo() {
+  const comboEl = document.getElementById('comboDisplay');
+  if (combo > 1) {
+    comboEl.innerHTML = `<span class="combo-text">🔥x${combo}</span>`;
+  } else {
+    comboEl.textContent = '';
+  }
+}
+
+function startTimer() {
+  timeLeft = 25;
+  clearInterval(timerInterval);
+  const timerText = document.getElementById('timerText');
+  const timerFill = document.getElementById('timerFill');
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerText.textContent = timeLeft;
+
+    const progress = timeLeft / 25;
+    const rotation = (1 - progress) * 360;
+    timerFill.style.transform = `rotate(-90deg) rotateZ(${rotation}deg)`;
+
+    if (timeLeft <= 5) {
+      timerText.classList.add('warning');
+      if (timeLeft > 0) playSound('tick');
+    } else {
+      timerText.classList.remove('warning');
+    }
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) {
+        answered = true;
+        handleTimeout();
+      }
+    }
+  }, 1000);
+}
+
+function handleTimeout() {
+  document.querySelectorAll('.option-btn, .debate-side, .multi-option').forEach(el => {
+    el.classList.add('disabled');
+  });
+  const checkBtn = document.getElementById('checkMultiBtn');
+  if (checkBtn) checkBtn.style.display = 'none';
+
+  playSound('wrong');
+  loseLive();
+  const card = document.getElementById('gameCard');
+  card.classList.add('shake');
+  setTimeout(() => card.classList.remove('shake'), 300);
+
+  document.getElementById('feedback').innerHTML = `
+    <div class="feedback wrong">
+      ⏰ 時間到了！這題算錯，一起加油！
+    </div>`;
+
+  combo = 0;
+  updateCombo();
+  showNextBtn();
+}
+
+function createFloatingPoints(x, y, points, isCombo = false) {
+  const popup = document.createElement('div');
+  popup.className = `point-popup correct`;
+  popup.textContent = isCombo ? `+${points} 🔥` : `+${points}`;
+  popup.style.left = x + 'px';
+  popup.style.top = y + 'px';
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 1000);
+}
+
+function createConfetti() {
+  const card = document.getElementById('gameCard');
+  const colors = ['#6D2E46', '#A26769', '#D48B8B', '#E8C9D1', '#6D2E46'];
+
+  for (let i = 0; i < 20; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    confetti.style.left = Math.random() * 100 + '%';
+    confetti.style.top = Math.random() * 20 - 10 + '%';
+    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    confetti.style.animation = `confetti ${0.8 + Math.random() * 0.4}s ease-out forwards`;
+    card.appendChild(confetti);
+    setTimeout(() => confetti.remove(), 1200);
+  }
+}
+
+function loseLive() {
+  lives--;
+  const heartsEl = document.getElementById('hearts');
+  if (lives >= 0) {
+    const heart = heartsEl.querySelector('span') || document.createElement('span');
+    if (heart.style) {
+      heart.classList.add('lost');
+    }
+  }
+  updateLives();
+
+  if (lives <= 0) {
+    clearInterval(timerInterval);
+    setTimeout(() => showGameOver(), 500);
+  }
+}
+
+function updateProgress() {
+  document.getElementById('progressFill').style.width = ((currentLevel / levels.length) * 100) + '%';
+  document.getElementById('progressText').textContent = `第 ${currentLevel + 1} 關 / 共 ${levels.length} 關`;
+}
+
+function renderLevel() {
+  answered = false;
+  multiSelected.clear();
+  updateProgress();
+  updateHUD();
+
+  const lv = levels[currentLevel];
+  const card = document.getElementById('gameCard');
+  card.classList.remove('shake');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'slideInRight 0.5s ease';
+
+  startTimer();
+
+  if (lv.type === 'choice') {
+    card.innerHTML = `
+      <span class="level-badge">${lv.badge}</span>
+      <div class="scenario-emoji">${lv.emoji}</div>
+      <div class="question-text">${lv.question}</div>
+      <div class="options">${lv.options.map((o, i) => `<button class="option-btn" onclick="selectOption(${i})">${o.text}</button>`).join('')}</div>
+      <div id="feedback"></div><div id="nextArea"></div>
+    `;
+  } else if (lv.type === 'debate') {
+    card.innerHTML = `
+      <span class="level-badge">${lv.badge}</span>
+      <div class="scenario-emoji">${lv.emoji}</div>
+      <div class="scenario-box">${lv.scenario}</div>
+      <div class="question-text" style="margin-top:15px">${lv.question}</div>
+      <div class="debate-box">
+        ${lv.sides.map((s, i) => `
+          <div class="debate-side" onclick="selectDebate(${i})" id="side${i}">
+            <h4>${s.title}</h4><p>${s.text}</p>
+          </div>
+        `).join('')}
+      </div>
+      <div id="feedback"></div><div id="nextArea"></div>
+    `;
+  } else if (lv.type === 'multi') {
+    card.innerHTML = `
+      <span class="level-badge">${lv.badge}</span>
+      <div class="question-text">${lv.question}</div>
+      <div class="question-hint">${lv.hint}</div>
+      <div id="multiOptions">
+        ${lv.items.map((item, i) => `
+          <div class="multi-option" onclick="toggleMulti(${i})" id="multi${i}">
+            <div class="checkbox"></div>
+            <span>${item.text}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div style="text-align:center; margin-top:15px">
+        <button class="btn btn-next" onclick="checkMulti()" id="checkMultiBtn">確認答案！</button>
+      </div>
+      <div id="feedback"></div><div id="nextArea"></div>
+    `;
+  }
+}
+
+function selectOption(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const lv = levels[currentLevel];
+  document.querySelectorAll('.option-btn').forEach((b, i) => {
+    b.classList.add('disabled');
+    if (lv.options[i].correct) b.classList.add('correct');
+    if (i === idx && !lv.options[i].correct) b.classList.add('wrong');
+  });
+
+  const ok = lv.options[idx].correct;
+  totalAnswered++;
+  if (ok) totalCorrect++;
+
+  if (ok) {
+    playSound('correct');
+    combo++;
+    if (combo > maxCombo) maxCombo = combo;
+    const timeBonus = Math.max(0, Math.floor(timeLeft * 0.5));
+    const basePoints = 10;
+    const bonusPoints = basePoints + timeBonus;
+    const totalPoints = bonusPoints * combo;
+    score += totalPoints;
+    createConfetti();
+    createFloatingPoints(window.innerWidth / 2, window.innerHeight / 2, totalPoints, combo > 1);
+  } else {
+    playSound('wrong');
+    combo = 0;
+    loseLive();
+    const card = document.getElementById('gameCard');
+    card.classList.add('shake');
+    setTimeout(() => card.classList.remove('shake'), 300);
+  }
+
+  updateHUD();
+  showFeedback(ok, lv);
+  showNextBtn();
+}
+
+function selectDebate(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const lv = levels[currentLevel];
+  lv.sides.forEach((s, i) => {
+    const el = document.getElementById('side' + i);
+    el.classList.add('disabled');
+    if (s.correct) el.classList.add('correct');
+    if (i === idx && !s.correct) el.classList.add('wrong');
+  });
+
+  const ok = lv.sides[idx].correct;
+  totalAnswered++;
+  if (ok) totalCorrect++;
+
+  if (ok) {
+    playSound('correct');
+    combo++;
+    if (combo > maxCombo) maxCombo = combo;
+    const timeBonus = Math.max(0, Math.floor(timeLeft * 0.5));
+    const basePoints = 10;
+    const bonusPoints = basePoints + timeBonus;
+    const totalPoints = bonusPoints * combo;
+    score += totalPoints;
+    createConfetti();
+    createFloatingPoints(window.innerWidth / 2, window.innerHeight / 2, totalPoints, combo > 1);
+  } else {
+    playSound('wrong');
+    combo = 0;
+    loseLive();
+    const card = document.getElementById('gameCard');
+    card.classList.add('shake');
+    setTimeout(() => card.classList.remove('shake'), 300);
+  }
+
+  updateHUD();
+  showFeedback(ok, lv);
+  showNextBtn();
+}
+
+function toggleMulti(idx) {
+  if (answered) return;
+  const el = document.getElementById('multi' + idx);
+  if (multiSelected.has(idx)) {
+    multiSelected.delete(idx);
+    el.classList.remove('selected');
+    el.querySelector('.checkbox').textContent = '';
+  } else {
+    multiSelected.add(idx);
+    el.classList.add('selected');
+    el.querySelector('.checkbox').textContent = '✓';
+  }
+}
+
+function checkMulti() {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const lv = levels[currentLevel];
+  document.getElementById('checkMultiBtn').style.display = 'none';
+
+  let correct = 0, total = 0;
+  lv.items.forEach((item, i) => {
+    const el = document.getElementById('multi' + i);
+    const shouldSelect = item.isStereotype;
+    if (shouldSelect) total++;
+    const wasSelected = multiSelected.has(i);
+    if (wasSelected && shouldSelect) { correct++; el.classList.add('correct-item'); }
+    else if (wasSelected && !shouldSelect) { el.classList.add('wrong-item'); }
+    else if (!wasSelected && shouldSelect) { el.classList.add('correct-item'); el.style.opacity = '0.6'; }
+    el.style.pointerEvents = 'none';
+  });
+
+  totalAnswered++;
+  const pts = Math.round((correct / total) * 15);
+  const isFullyCorrect = correct === total && multiSelected.size === total;
+  if (isFullyCorrect) totalCorrect++;
+
+  if (isFullyCorrect) {
+    playSound('correct');
+    combo++;
+    if (combo > maxCombo) maxCombo = combo;
+    const timeBonus = Math.max(0, Math.floor(timeLeft * 0.5));
+    const bonusPoints = pts + timeBonus;
+    const totalPoints = bonusPoints * combo;
+    score += totalPoints;
+    createConfetti();
+    createFloatingPoints(window.innerWidth / 2, window.innerHeight / 2, totalPoints, combo > 1);
+  } else {
+    playSound('wrong');
+    combo = 0;
+    loseLive();
+    const card = document.getElementById('gameCard');
+    card.classList.add('shake');
+    setTimeout(() => card.classList.remove('shake'), 300);
+  }
+
+  updateHUD();
+  showFeedback(isFullyCorrect, lv);
+  showNextBtn();
+}
+
+function showFeedback(ok, lv) {
+  document.getElementById('feedback').innerHTML = `
+    <div class="feedback ${ok ? 'correct' : 'wrong'}">
+      <span>${ok ? '✅' : '💡'}</span> ${ok ? lv.correctMsg : lv.wrongMsg}
+    </div>`;
+}
+
+function showNextBtn() {
+  document.getElementById('nextArea').innerHTML = `
+    <div style="text-align:center">
+      <button class="btn btn-next" onclick="nextLevel()">${currentLevel < levels.length - 1 ? '下一關 ➜' : '看結果 🎉'}</button>
+    </div>`;
+}
+
+function nextLevel() {
+  currentLevel++;
+  if (currentLevel >= levels.length) showResult();
+  else { renderLevel(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+}
+
+function showResult() {
+  showScreen('resultScreen');
+  const maxScore = 90;
+  const pct = score / maxScore;
+  let emoji, title, msg, stars;
+  if (pct >= 0.9) { emoji = '🏆'; title = '性別平等達人！'; stars = '⭐⭐⭐'; msg = '你有非常棒的性別平等觀念！\n繼續用行動讓這個世界更美好。'; }
+  else if (pct >= 0.6) { emoji = '😊'; title = '做得很好！'; stars = '⭐⭐'; msg = '你已經開始思考性別平等的議題了！\n繼續關注，你會越來越有想法。'; }
+  else { emoji = '💪'; title = '繼續探索！'; stars = '⭐'; msg = '性別平等是一門值得深入的課題。\n再玩一次，挑戰更好的成績！'; }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').textContent = `你的分數：${score} 分`;
+  document.getElementById('resultMsg').textContent = msg;
+
+  const timeTaken = Math.round((Date.now() - gameStartTime) / 1000);
+  const accuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+
+  document.getElementById('statsBox').innerHTML = `
+    <div class="stat-row"><span>✅ 正確答案</span><strong>${totalCorrect} / ${totalAnswered}</strong></div>
+    <div class="stat-row"><span>📊 正確率</span><strong>${accuracy}%</strong></div>
+    <div class="stat-row"><span>🔥 最高連勝</span><strong>${maxCombo}x</strong></div>
+    <div class="stat-row"><span>⏱️ 耗時</span><strong>${timeTaken} 秒</strong></div>
+  `;
+}
+
+function showGameOver() {
+  showScreen('gameOverScreen');
+  const timeTaken = Math.round((Date.now() - gameStartTime) / 1000);
+  const accuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+
+  document.getElementById('gameOverStats').innerHTML = `
+    <div class="stat-row"><span>✅ 正確答案</span><strong>${totalCorrect} / ${totalAnswered}</strong></div>
+    <div class="stat-row"><span>📊 正確率</span><strong>${accuracy}%</strong></div>
+    <div class="stat-row"><span>🔥 最高連勝</span><strong>${maxCombo}x</strong></div>
+    <div class="stat-row"><span>⏱️ 耗時</span><strong>${timeTaken} 秒</strong></div>
+    <div class="stat-row"><span>⭐ 獲得分數</span><strong>${score} 分</strong></div>
+  `;
+}
+</script>
+</body>
+</html>

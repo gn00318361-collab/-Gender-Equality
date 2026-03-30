@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>性別平等小勇士 — 低年級互動遊戲</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; background: #FFF0F0; min-height: 100vh; }
+
+.game-container {
+  max-width: 800px; margin: 0 auto; padding: 20px;
+  min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+/* Title Screen */
+.screen { display: none; width: 100%; animation: fadeIn 0.5s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.title-screen {
+  text-align: center; padding: 40px 20px;
+  background: linear-gradient(135deg, #FF6B6B 0%, #FFB347 50%, #FFD700 100%);
+  border-radius: 30px; color: white; box-shadow: 0 10px 40px rgba(255,107,107,0.3);
+}
+.title-screen h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+.title-screen .subtitle { font-size: 1.2em; margin-bottom: 8px; opacity: 0.9; }
+.title-screen .grade { font-size: 1em; margin-bottom: 30px; opacity: 0.8; }
+.title-screen .mascot { font-size: 5em; margin: 20px 0; }
+
+.btn {
+  display: inline-block; padding: 15px 40px; border-radius: 50px; border: none;
+  font-size: 1.2em; font-family: inherit; cursor: pointer; transition: all 0.3s;
+  font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+}
+.btn:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+.btn-start { background: white; color: #FF6B6B; }
+.btn-next { background: #FF6B6B; color: white; margin-top: 20px; }
+.btn-retry { background: #FFB347; color: white; }
+
+/* Top Bar with Lives, Timer, Combo */
+.top-bar {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  padding: 15px 0; margin-bottom: 15px; gap: 15px;
+}
+.lives-display {
+  display: flex; gap: 8px; font-size: 2em; align-items: center;
+}
+.heart {
+  display: inline-block; transition: transform 0.3s;
+}
+.heart.lost {
+  opacity: 0.3;
+}
+.heart.shake {
+  animation: shake 0.4s;
+}
+@keyframes shake {
+  0%, 100% { transform: scale(1) rotate(0); }
+  25% { transform: scale(1.2) rotate(-5deg); }
+  75% { transform: scale(1.2) rotate(5deg); }
+}
+
+.timer-display {
+  font-weight: bold; color: #FF6B6B; font-size: 1.2em;
+  display: flex; align-items: center; gap: 8px;
+}
+.timer-circle {
+  width: 50px; height: 50px; border-radius: 50%;
+  border: 4px solid #FFE0E0; display: flex; align-items: center; justify-content: center;
+  font-weight: bold; color: #FF6B6B;
+  transition: all 0.3s;
+  background: white;
+}
+.timer-circle.low {
+  border-color: #FF6B6B;
+  background: #FFE0E0;
+  animation: pulse 0.5s infinite;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.combo-display {
+  font-size: 1.3em; font-weight: bold;
+  color: #FF6B6B; text-align: right;
+  height: 30px;
+}
+
+/* Progress */
+.progress-bar {
+  width: 100%; height: 12px; background: #FFE0E0; border-radius: 10px; margin: 15px 0; overflow: hidden;
+}
+.progress-fill { height: 100%; background: linear-gradient(90deg, #FF6B6B, #FFB347); border-radius: 10px; transition: width 0.5s ease; }
+.progress-text { text-align: center; color: #FF6B6B; font-size: 0.9em; font-weight: bold; }
+
+/* Game Card */
+.game-card {
+  background: white; border-radius: 24px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  width: 100%; position: relative; overflow: hidden;
+  animation: slideIn 0.4s ease;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.game-card.wrong-shake {
+  animation: cardShake 0.4s;
+}
+@keyframes cardShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+.game-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+  background: linear-gradient(90deg, #FF6B6B, #FFB347, #FFD700);
+}
+.level-badge {
+  display: inline-block; background: #FF6B6B; color: white; padding: 5px 16px;
+  border-radius: 20px; font-size: 0.85em; font-weight: bold; margin-bottom: 15px;
+}
+.question-text { font-size: 1.3em; color: #333; margin-bottom: 5px; line-height: 1.6; }
+.question-hint { font-size: 0.95em; color: #999; margin-bottom: 20px; }
+.scenario-emoji { font-size: 4em; text-align: center; margin: 15px 0; }
+
+/* Options */
+.options { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+.option-btn {
+  padding: 16px 20px; border-radius: 16px; border: 3px solid #FFE0E0;
+  background: #FFF8F8; font-size: 1.05em; font-family: inherit; cursor: pointer;
+  transition: all 0.3s; text-align: left; color: #444; position: relative;
+}
+.option-btn:hover { border-color: #FF6B6B; background: #FFF0F0; transform: scale(1.02); }
+.option-btn.correct { border-color: #4CAF50; background: #E8F5E9; color: #2E7D32; }
+.option-btn.wrong { border-color: #F44336; background: #FFEBEE; color: #C62828; }
+.option-btn.disabled { pointer-events: none; opacity: 0.7; }
+.option-btn .option-icon { margin-right: 8px; }
+
+/* Confetti */
+.confetti {
+  position: fixed; pointer-events: none; font-size: 20px;
+}
+@keyframes confettiFall {
+  to {
+    transform: translateY(400px) translateX(var(--tx)) rotateZ(360deg);
+    opacity: 0;
+  }
+}
+
+/* Floating Points */
+.floating-points {
+  position: absolute; font-weight: bold; font-size: 1.3em;
+  pointer-events: none; animation: floatUp 1s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-60px); }
+}
+
+/* Drag & Drop */
+.drag-area { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 15px 0; min-height: 60px; }
+.drag-item {
+  padding: 12px 20px; background: #FFE8E0; border-radius: 12px; cursor: grab;
+  font-size: 1em; border: 2px dashed #FFB347; transition: all 0.3s; user-select: none;
+}
+.drag-item:active { cursor: grabbing; transform: scale(1.1); }
+.drag-item.placed { opacity: 0.4; pointer-events: none; }
+
+.drop-zones { display: flex; gap: 20px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+.drop-zone {
+  width: 200px; min-height: 120px; border: 3px dashed #DDD; border-radius: 16px;
+  padding: 12px; text-align: center; transition: all 0.3s;
+}
+.drop-zone.highlight { border-color: #FF6B6B; background: #FFF0F0; }
+.drop-zone h4 { color: #FF6B6B; margin-bottom: 8px; font-size: 1em; }
+.drop-zone .dropped-items { display: flex; flex-direction: column; gap: 5px; }
+.dropped-tag {
+  padding: 6px 12px; background: #FF6B6B; color: white; border-radius: 8px;
+  font-size: 0.85em; display: flex; justify-content: space-between; align-items: center;
+}
+.dropped-tag .remove { cursor: pointer; margin-left: 8px; font-weight: bold; }
+
+/* Feedback */
+.feedback {
+  margin-top: 20px; padding: 16px 20px; border-radius: 16px; font-size: 1em;
+  line-height: 1.6; animation: fadeIn 0.3s ease;
+}
+.feedback.correct { background: #E8F5E9; color: #2E7D32; border-left: 4px solid #4CAF50; }
+.feedback.wrong { background: #FFF3E0; color: #E65100; border-left: 4px solid #FFB347; }
+.feedback .feedback-icon { font-size: 1.3em; margin-right: 5px; }
+
+/* Score */
+.score-display { text-align: center; font-size: 1.1em; color: #FF6B6B; font-weight: bold; margin: 10px 0; }
+
+/* Result Screen */
+.result-screen { text-align: center; padding: 40px 20px; }
+.result-card {
+  background: white; border-radius: 24px; padding: 40px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+.result-emoji { font-size: 5em; margin-bottom: 15px; }
+.result-title { font-size: 2em; color: #FF6B6B; margin-bottom: 10px; }
+.result-score { font-size: 1.3em; color: #666; margin-bottom: 5px; }
+.result-stats {
+  background: #FFF0F0; border-radius: 16px; padding: 20px; margin: 20px 0;
+  text-align: left; display: inline-block;
+}
+.result-stats .stat-line {
+  padding: 8px 0; color: #666; font-size: 1em;
+}
+.result-msg { font-size: 1.1em; color: #888; margin-bottom: 25px; line-height: 1.6; }
+.stars { font-size: 2.5em; margin: 15px 0; }
+
+/* Game Over Screen */
+.game-over-screen {
+  text-align: center; padding: 40px 20px;
+}
+.game-over-card {
+  background: white; border-radius: 24px; padding: 40px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+}
+.game-over-emoji { font-size: 4em; margin-bottom: 15px; }
+.game-over-title { font-size: 2em; color: #FF6B6B; margin-bottom: 20px; }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .title-screen h1 { font-size: 1.8em; }
+  .game-card { padding: 20px; }
+  .question-text { font-size: 1.1em; }
+  .drop-zones { flex-direction: column; align-items: center; }
+  .top-bar { flex-wrap: wrap; }
+  .timer-circle { width: 40px; height: 40px; font-size: 0.9em; }
+}
+</style>
+</head>
+<body>
+<div class="game-container" id="app">
+
+  <!-- Title Screen -->
+  <div class="screen active" id="titleScreen">
+    <div class="title-screen">
+      <div class="mascot">🛡️</div>
+      <h1>性別平等小勇士</h1>
+      <div class="subtitle">認識自己的身體，學會保護自己</div>
+      <div class="grade">一、二年級適用</div>
+      <button class="btn btn-start" onclick="startGame()">開始冒險！</button>
+    </div>
+  </div>
+
+  <!-- Game Screen -->
+  <div class="screen" id="gameScreen">
+    <div class="top-bar">
+      <div class="lives-display" id="livesDisplay"></div>
+      <div class="timer-display" id="timerDisplay"></div>
+      <div class="combo-display" id="comboDisplay"></div>
+    </div>
+    <div class="score-display">⭐ 分數：<span id="scoreDisplay">0</span> 分</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-text" id="progressText">第 1 關 / 共 8 關</div>
+    <div class="game-card" id="gameCard"></div>
+  </div>
+
+  <!-- Game Over Screen -->
+  <div class="screen" id="gameOverScreen">
+    <div class="game-over-card">
+      <div class="game-over-emoji">💔</div>
+      <div class="game-over-title">遊戲結束</div>
+      <div style="font-size: 1.2em; color: #666; margin: 20px 0;">
+        你的生命值已用盡，但不要放棄！試試看再來一次，加油！
+      </div>
+      <button class="btn btn-retry" onclick="startGame()">重新開始</button>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div class="screen" id="resultScreen">
+    <div class="result-card">
+      <div class="result-emoji" id="resultEmoji"></div>
+      <div class="stars" id="resultStars"></div>
+      <div class="result-title" id="resultTitle"></div>
+      <div class="result-score" id="resultScore"></div>
+      <div class="result-stats" id="resultStats"></div>
+      <div class="result-msg" id="resultMsg"></div>
+      <button class="btn btn-start" onclick="startGame()">再玩一次</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const levels = [
+  // Level 1: 選擇題
+  {
+    type: "choice",
+    badge: "🌟 身體自主權",
+    emoji: "🧒",
+    question: "小明在學校，有一個不認識的大人突然摸了他的頭，小明覺得不舒服。他應該怎麼做？",
+    hint: "想想看，如果你覺得不舒服...",
+    options: [
+      { text: "🤫 不說話，假裝沒事", correct: false },
+      { text: "✋ 大聲說「請不要碰我！」然後告訴老師", correct: true },
+      { text: "😢 自己躲起來哭", correct: false },
+    ],
+    correctMsg: "太棒了！如果有人碰你讓你不舒服，你可以勇敢說「不」，然後告訴老師或爸爸媽媽！",
+    wrongMsg: "再想想看喔！如果有人碰你讓你不舒服，最重要的是要勇敢說出來，告訴信任的大人。"
+  },
+  // Level 2: 情境選擇
+  {
+    type: "choice",
+    badge: "🎯 情境判斷",
+    emoji: "👫",
+    question: "下課時間，小華一直拉小美的裙子，小美說「我不喜歡，不要這樣」，但小華說「我只是開玩笑」。你覺得誰說得對？",
+    hint: "每個人的感受都很重要...",
+    options: [
+      { text: "🙆 小美說得對，她不喜歡就應該被尊重", correct: true },
+      { text: "🤷 小華只是開玩笑，小美不要太在意", correct: false },
+      { text: "😶 這種事不用管", correct: false },
+    ],
+    correctMsg: "答對了！不管是不是開玩笑，只要對方說「不喜歡」，我們就應該停下來。尊重別人的感受很重要！",
+    wrongMsg: "再想想看！不管是不是開玩笑，如果對方說「不喜歡」，我們就應該尊重他的感受，馬上停下來。"
+  },
+  // Level 3: 配對題
+  {
+    type: "matching",
+    badge: "🧩 身體小知識",
+    question: "哪些碰觸是「好的碰觸」？哪些是「不好的碰觸」？把它們拖到正確的位置！",
+    hint: "好的碰觸讓你感覺安全又開心",
+    items: [
+      { text: "媽媽的擁抱", zone: "good" },
+      { text: "和好朋友擊掌", zone: "good" },
+      { text: "被陌生人摸臉", zone: "bad" },
+      { text: "有人偷偷碰隱私部位", zone: "bad" },
+      { text: "受傷時醫生檢查", zone: "good" },
+      { text: "被同學強拉手", zone: "bad" },
+    ],
+    zones: [
+      { id: "good", title: "😊 好的碰觸" },
+      { id: "bad", title: "😟 不好的碰觸" },
+    ],
+  },
+  // Level 4: 選擇題
+  {
+    type: "choice",
+    badge: "🔒 隱私部位",
+    emoji: "👙",
+    question: "我們的身體有一些「隱私部位」，就是泳衣穿起來蓋住的地方。下面哪一個說法是正確的？",
+    hint: "隱私部位是屬於自己的...",
+    options: [
+      { text: "👐 任何人都可以碰我的隱私部位", correct: false },
+      { text: "🔐 除了爸媽幫忙洗澡或醫生看病，別人不可以碰我的隱私部位", correct: true },
+      { text: "😅 只有好朋友可以碰", correct: false },
+    ],
+    correctMsg: "完全正確！隱私部位是屬於你自己的，除了爸媽照顧你或醫生檢查身體，其他人都不可以碰！",
+    wrongMsg: "再想想看！隱私部位是很重要的，只有在爸爸媽媽幫忙洗澡或醫生看病的時候才可以被碰喔。"
+  },
+  // Level 5: 情境
+  {
+    type: "choice",
+    badge: "🆘 求助技巧",
+    emoji: "📞",
+    question: "如果遇到有人傷害你或碰了你不喜歡的地方，除了告訴爸爸媽媽和老師，你還可以打哪一支電話求助？",
+    hint: "有一支很重要的電話號碼...",
+    options: [
+      { text: "📞 110 報警專線", correct: false },
+      { text: "📞 113 保護專線", correct: true },
+      { text: "📞 119 消防專線", correct: false },
+    ],
+    correctMsg: "答對了！113 是保護專線，如果遇到傷害，可以打 113 求助。記住這個號碼喔！",
+    wrongMsg: "正確答案是 113 保護專線！110 是報警、119 是消防。遇到有人傷害你，可以打 113 求助。"
+  },
+  // Level 6: 情境選擇
+  {
+    type: "choice",
+    badge: "💪 勇敢說不",
+    emoji: "🙅",
+    question: "叔叔說：「來，親叔叔一下，這是我們的秘密，不要告訴別人喔。」你覺得這樣做對嗎？",
+    hint: "秘密有好的秘密和不好的秘密...",
+    options: [
+      { text: "❌ 不對！不應該有讓你不舒服的秘密，要告訴爸媽", correct: true },
+      { text: "⭕ 對，長輩的話要聽", correct: false },
+      { text: "🤔 不確定，先答應再說", correct: false },
+    ],
+    correctMsg: "你好棒！如果大人叫你保守讓你不舒服的秘密，那就是「不好的秘密」，一定要告訴爸爸媽媽！",
+    wrongMsg: "要注意喔！如果大人叫你保守讓你不舒服的秘密，那是「不好的秘密」。不管是誰說的，都要告訴爸爸媽媽！"
+  },
+  // Level 7: 配對
+  {
+    type: "matching",
+    badge: "😊 情緒表達",
+    question: "生氣的時候，哪些是「好的方法」？哪些是「不好的方法」？把它們放到正確的位置！",
+    hint: "用說的比用做的好",
+    items: [
+      { text: "用說的表達感受", zone: "good" },
+      { text: "打人或踢人", zone: "bad" },
+      { text: "深呼吸冷靜一下", zone: "good" },
+      { text: "大吼大叫罵人", zone: "bad" },
+      { text: "告訴老師怎麼了", zone: "good" },
+      { text: "摔東西", zone: "bad" },
+    ],
+    zones: [
+      { id: "good", title: "👍 好的方法" },
+      { id: "bad", title: "👎 不好的方法" },
+    ],
+  },
+  // Level 8: 總結題
+  {
+    type: "choice",
+    badge: "🏆 最終挑戰",
+    emoji: "🌈",
+    question: "下面哪一句話最正確？",
+    hint: "想想今天學到的所有知識...",
+    options: [
+      { text: "💗 我的身體我做主，我有權利說「不」，也要尊重別人說「不」", correct: true },
+      { text: "😔 別人碰我是因為我不好", correct: false },
+      { text: "🤐 被人欺負了不能說出去", correct: false },
+    ],
+    correctMsg: "🎉 太棒了！記住：你的身體是你自己的，你有權利保護自己，也要尊重別人的身體。如果遇到不舒服的事，一定要勇敢說出來！",
+    wrongMsg: "正確答案是第一個！記住：你的身體是你自己的，你有權利說「不」。如果被欺負了，一定不是你的錯，要勇敢說出來！"
+  },
+];
+
+let currentLevel = 0;
+let score = 0;
+let lives = 3;
+let combo = 0;
+let answered = false;
+let timerInterval = null;
+let timeRemaining = 15;
+let sessionStats = {
+  correct: 0,
+  total: 0,
+  maxCombo: 0,
+  startTime: Date.now(),
+  timeTaken: 0
+};
+let dragData = null;
+let matchingState = {};
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  currentLevel = 0;
+  score = 0;
+  lives = 3;
+  combo = 0;
+  answered = false;
+  sessionStats = {
+    correct: 0,
+    total: 0,
+    maxCombo: 0,
+    startTime: Date.now(),
+    timeTaken: 0
+  };
+  showScreen('gameScreen');
+  renderLevel();
+}
+
+function updateProgress() {
+  const pct = (currentLevel / levels.length) * 100;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `第 ${currentLevel + 1} 關 / 共 ${levels.length} 關`;
+  document.getElementById('scoreDisplay').textContent = score;
+  updateLivesDisplay();
+  updateComboDisplay();
+}
+
+function updateLivesDisplay() {
+  const livesEl = document.getElementById('livesDisplay');
+  livesEl.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const heart = document.createElement('span');
+    heart.className = 'heart';
+    if (i >= lives) {
+      heart.classList.add('lost');
+    }
+    heart.textContent = '❤️';
+    livesEl.appendChild(heart);
+  }
+}
+
+function updateComboDisplay() {
+  const comboEl = document.getElementById('comboDisplay');
+  if (combo > 1) {
+    comboEl.innerHTML = `🔥 x${combo}`;
+  } else {
+    comboEl.innerHTML = '';
+  }
+}
+
+function startTimer() {
+  timeRemaining = 15;
+  const timerDisplay = document.getElementById('timerDisplay');
+
+  if (timerInterval) clearInterval(timerInterval);
+
+  timerInterval = setInterval(() => {
+    timeRemaining--;
+    const timerCircle = document.querySelector('.timer-circle');
+    if (!timerCircle) return;
+
+    timerCircle.textContent = timeRemaining;
+
+    if (timeRemaining <= 5) {
+      timerCircle.classList.add('low');
+      playTickSound();
+    } else {
+      timerCircle.classList.remove('low');
+    }
+
+    if (timeRemaining <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) {
+        answered = true;
+        handleWrongAnswer(null, true);
+      }
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+}
+
+function renderLevel() {
+  stopTimer();
+  answered = false;
+  updateProgress();
+  const lv = levels[currentLevel];
+  const card = document.getElementById('gameCard');
+
+  if (lv.type === 'choice') {
+    card.innerHTML = `
+      <span class="level-badge">${lv.badge}</span>
+      <div class="scenario-emoji">${lv.emoji}</div>
+      <div class="question-text">${lv.question}</div>
+      <div class="question-hint">${lv.hint}</div>
+      <div class="options" id="options">
+        ${lv.options.map((o, i) => `
+          <button class="option-btn" onclick="selectOption(${i})">
+            ${o.text}
+          </button>
+        `).join('')}
+      </div>
+      <div id="feedback"></div>
+      <div id="nextArea"></div>
+    `;
+  } else if (lv.type === 'matching') {
+    matchingState = {};
+    lv.zones.forEach(z => matchingState[z.id] = []);
+    const shuffled = [...lv.items].sort(() => Math.random() - 0.5);
+    card.innerHTML = `
+      <span class="level-badge">${lv.badge}</span>
+      <div class="question-text">${lv.question}</div>
+      <div class="question-hint">${lv.hint}</div>
+      <div class="drag-area" id="dragArea">
+        ${shuffled.map((item, i) => `
+          <div class="drag-item" draggable="true" data-index="${lv.items.indexOf(item)}"
+               ondragstart="onDragStart(event)" ontouchstart="onTouchStart(event)">${item.text}</div>
+        `).join('')}
+      </div>
+      <div class="drop-zones" id="dropZones">
+        ${lv.zones.map(z => `
+          <div class="drop-zone" data-zone="${z.id}"
+               ondragover="onDragOver(event)" ondrop="onDrop(event)">
+            <h4>${z.title}</h4>
+            <div class="dropped-items" id="dropped-${z.id}"></div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="text-align:center; margin-top:15px;">
+        <button class="btn btn-next" onclick="checkMatching()" id="checkMatchBtn">確認答案！</button>
+      </div>
+      <div id="feedback"></div>
+      <div id="nextArea"></div>
+    `;
+  }
+
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'slideIn 0.4s ease';
+
+  startTimer();
+}
+
+function selectOption(index) {
+  if (answered) return;
+  answered = true;
+  stopTimer();
+
+  const lv = levels[currentLevel];
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((b, i) => {
+    b.classList.add('disabled');
+    if (lv.options[i].correct) b.classList.add('correct');
+    if (i === index && !lv.options[i].correct) b.classList.add('wrong');
+  });
+
+  const isCorrect = lv.options[index].correct;
+  const timeBonus = Math.max(0, Math.floor((timeRemaining / 15) * 5));
+
+  if (isCorrect) {
+    sessionStats.correct++;
+    combo++;
+    if (combo > sessionStats.maxCombo) {
+      sessionStats.maxCombo = combo;
+    }
+    const basePoints = 10;
+    const points = basePoints * combo + timeBonus;
+    score += points;
+    playCorrectSound();
+    showConfetti();
+    showFloatingPoints(points, index);
+  } else {
+    handleWrongAnswer(index, false);
+    return;
+  }
+
+  sessionStats.total++;
+  document.getElementById('scoreDisplay').textContent = score;
+
+  document.getElementById('feedback').innerHTML = `
+    <div class="feedback correct">
+      <span class="feedback-icon">✅</span>
+      ${lv.correctMsg}
+    </div>
+  `;
+
+  document.getElementById('nextArea').innerHTML = `
+    <div style="text-align:center">
+      <button class="btn btn-next" onclick="nextLevel()">
+        ${currentLevel < levels.length - 1 ? '下一關 ➜' : '看結果 🎉'}
+      </button>
+    </div>
+  `;
+}
+
+function handleWrongAnswer(index, isTimeout) {
+  answered = true;
+  const lv = levels[currentLevel];
+  const card = document.getElementById('gameCard');
+
+  combo = 0;
+  updateComboDisplay();
+  lives--;
+
+  if (lives <= 0) {
+    playBuzzSound();
+    card.classList.add('wrong-shake');
+    setTimeout(() => {
+      showScreen('gameOverScreen');
+    }, 400);
+    return;
+  }
+
+  playBuzzSound();
+  card.classList.add('wrong-shake');
+
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach((b, i) => {
+    b.classList.add('disabled');
+    if (lv.options[i].correct) b.classList.add('correct');
+    if (i === index && !lv.options[i].correct) b.classList.add('wrong');
+  });
+
+  sessionStats.total++;
+  updateProgress();
+  const hearts = document.querySelectorAll('.heart');
+  if (hearts[lives]) {
+    hearts[lives].classList.add('shake');
+  }
+
+  const feedbackMsg = isTimeout
+    ? '時間到了！這題沒有答對。' + lv.wrongMsg
+    : lv.wrongMsg;
+
+  document.getElementById('feedback').innerHTML = `
+    <div class="feedback wrong">
+      <span class="feedback-icon">💡</span>
+      ${feedbackMsg}
+    </div>
+  `;
+
+  document.getElementById('nextArea').innerHTML = `
+    <div style="text-align:center">
+      <button class="btn btn-next" onclick="nextLevel()">
+        ${currentLevel < levels.length - 1 ? '下一關 ➜' : '看結果 🎉'}
+      </button>
+    </div>
+  `;
+}
+
+function showConfetti() {
+  for (let i = 0; i < 15; i++) {
+    const confetti = document.createElement('div');
+    confetti.className = 'confetti';
+    const emoji = ['🎉', '✨', '⭐', '🌟', '💫'][Math.floor(Math.random() * 5)];
+    confetti.textContent = emoji;
+    confetti.style.left = Math.random() * window.innerWidth + 'px';
+    confetti.style.top = '0px';
+    confetti.style.setProperty('--tx', (Math.random() - 0.5) * 200 + 'px');
+    confetti.style.animation = 'confettiFall 2s ease-in forwards';
+    document.body.appendChild(confetti);
+
+    setTimeout(() => confetti.remove(), 2000);
+  }
+}
+
+function showFloatingPoints(points, index) {
+  const btn = document.querySelectorAll('.option-btn')[index];
+  if (!btn) return;
+
+  const rect = btn.getBoundingClientRect();
+  const floating = document.createElement('div');
+  floating.className = 'floating-points';
+  floating.style.left = (rect.left + rect.width / 2) + 'px';
+  floating.style.top = rect.top + 'px';
+  floating.style.color = '#FF6B6B';
+  floating.style.fontWeight = 'bold';
+
+  if (combo > 1) {
+    floating.textContent = `+${points} 🔥`;
+  } else {
+    floating.textContent = `+${points}`;
+  }
+
+  document.body.appendChild(floating);
+  setTimeout(() => floating.remove(), 1000);
+}
+
+function checkMatching() {
+  if (answered) return;
+  answered = true;
+  stopTimer();
+
+  const lv = levels[currentLevel];
+  let correct = 0;
+  let total = lv.items.length;
+
+  lv.items.forEach((item, i) => {
+    Object.keys(matchingState).forEach(z => {
+      if (matchingState[z].includes(i) && item.zone === z) correct++;
+    });
+  });
+
+  const timeBonus = Math.max(0, Math.floor((timeRemaining / 15) * 5));
+  const allCorrect = correct === total;
+
+  if (allCorrect) {
+    combo++;
+    if (combo > sessionStats.maxCombo) {
+      sessionStats.maxCombo = combo;
+    }
+    sessionStats.correct++;
+    const pts = Math.round((correct / total) * 15) * combo + timeBonus;
+    score += pts;
+    playCorrectSound();
+    showConfetti();
+  } else {
+    combo = 0;
+    updateComboDisplay();
+    lives--;
+
+    if (lives <= 0) {
+      playBuzzSound();
+      document.getElementById('gameCard').classList.add('wrong-shake');
+      setTimeout(() => {
+        showScreen('gameOverScreen');
+      }, 400);
+      return;
+    }
+
+    playBuzzSound();
+    document.getElementById('gameCard').classList.add('wrong-shake');
+    const hearts = document.querySelectorAll('.heart');
+    if (hearts[lives]) {
+      hearts[lives].classList.add('shake');
+    }
+  }
+
+  sessionStats.total++;
+  document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('checkMatchBtn').style.display = 'none';
+  updateProgress();
+
+  const pts = Math.round((correct / total) * 15);
+  document.getElementById('feedback').innerHTML = `
+    <div class="feedback ${allCorrect ? 'correct' : 'wrong'}">
+      <span class="feedback-icon">${allCorrect ? '✅' : '💡'}</span>
+      ${allCorrect
+        ? `全部答對！你答對了 ${correct}/${total} 題，得到 ${pts * combo} 分！`
+        : `你答對了 ${correct}/${total} 題，得到 ${pts} 分。沒關係，下次會更好！`}
+    </div>
+  `;
+  document.getElementById('nextArea').innerHTML = `
+    <div style="text-align:center">
+      <button class="btn btn-next" onclick="nextLevel()">
+        ${currentLevel < levels.length - 1 ? '下一關 ➜' : '看結果 🎉'}
+      </button>
+    </div>
+  `;
+}
+
+function nextLevel() {
+  currentLevel++;
+  if (currentLevel >= levels.length) {
+    showResult();
+  } else {
+    renderLevel();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function showResult() {
+  sessionStats.timeTaken = Math.round((Date.now() - sessionStats.startTime) / 1000);
+  const maxScore = 80;
+  const pct = score / maxScore;
+  let emoji, title, msg, stars;
+
+  if (pct >= 0.9) {
+    emoji = '🏆'; title = '超級厲害！'; stars = '⭐⭐⭐';
+    msg = '你是性別平等小勇士！\n你已經學會保護自己、尊重別人。';
+  } else if (pct >= 0.6) {
+    emoji = '😊'; title = '做得很好！'; stars = '⭐⭐';
+    msg = '你已經學到很多保護自己的方法了！\n繼續加油，你會越來越棒！';
+  } else {
+    emoji = '💪'; title = '繼續加油！'; stars = '⭐';
+    msg = '沒關係，學習是一步一步來的。\n你可以再玩一次，會學到更多喔！';
+  }
+
+  const accuracy = sessionStats.total > 0 ? Math.round((sessionStats.correct / sessionStats.total) * 100) : 0;
+  const minutes = Math.floor(sessionStats.timeTaken / 60);
+  const seconds = sessionStats.timeTaken % 60;
+  const timeStr = minutes > 0 ? `${minutes} 分 ${seconds} 秒` : `${seconds} 秒`;
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').textContent = `你的分數：${score} 分`;
+  document.getElementById('resultStats').innerHTML = `
+    <div class="stat-line">✅ 正確率：${accuracy}%</div>
+    <div class="stat-line">⏱️ 耗時：${timeStr}</div>
+    <div class="stat-line">🔥 最高連擊：${sessionStats.maxCombo}x</div>
+  `;
+  document.getElementById('resultMsg').textContent = msg;
+
+  showScreen('resultScreen');
+}
+
+// Drag & Drop
+function onDragStart(e) {
+  dragData = e.target.dataset.index;
+  e.dataTransfer.setData('text/plain', dragData);
+}
+function onDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('highlight'); }
+function onDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('highlight');
+  const idx = parseInt(e.dataTransfer.getData('text/plain'));
+  const zone = e.currentTarget.dataset.zone;
+  addToZone(idx, zone);
+}
+
+let touchItem = null;
+function onTouchStart(e) {
+  touchItem = e.target;
+  touchItem.style.opacity = '0.6';
+}
+document.addEventListener('touchend', function(e) {
+  if (!touchItem) return;
+  touchItem.style.opacity = '1';
+  const touch = e.changedTouches[0];
+  const zones = document.querySelectorAll('.drop-zone');
+  zones.forEach(zone => {
+    const rect = zone.getBoundingClientRect();
+    if (touch.clientX >= rect.left && touch.clientX <= rect.right &&
+        touch.clientY >= rect.top && touch.clientY <= rect.bottom) {
+      const idx = parseInt(touchItem.dataset.index);
+      addToZone(idx, zone.dataset.zone);
+    }
+  });
+  touchItem = null;
+});
+
+function addToZone(itemIndex, zoneId) {
+  const lv = levels[currentLevel];
+  Object.keys(matchingState).forEach(z => {
+    matchingState[z] = matchingState[z].filter(i => i !== itemIndex);
+  });
+  matchingState[zoneId].push(itemIndex);
+
+  const item = document.querySelector(`.drag-item[data-index="${itemIndex}"]`);
+  if (item) item.classList.add('placed');
+
+  lv.zones.forEach(z => {
+    const container = document.getElementById('dropped-' + z.id);
+    container.innerHTML = matchingState[z.id].map(i => `
+      <div class="dropped-tag">${lv.items[i].text}
+        <span class="remove" onclick="removeFromZone(${i}, '${z.id}')">✕</span>
+      </div>
+    `).join('');
+  });
+}
+
+function removeFromZone(itemIndex, zoneId) {
+  matchingState[zoneId] = matchingState[zoneId].filter(i => i !== itemIndex);
+  const item = document.querySelector(`.drag-item[data-index="${itemIndex}"]`);
+  if (item) item.classList.remove('placed');
+  const lv = levels[currentLevel];
+  lv.zones.forEach(z => {
+    const container = document.getElementById('dropped-' + z.id);
+    container.innerHTML = matchingState[z.id].map(i => `
+      <div class="dropped-tag">${lv.items[i].text}
+        <span class="remove" onclick="removeFromZone(${i}, '${z.id}')">✕</span>
+      </div>
+    `).join('');
+  });
+}
+
+// Web Audio API Sound Effects
+function playCorrectSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(523.25, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1);
+    oscillator.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2);
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.3);
+  } catch (e) {}
+}
+
+function playBuzzSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(200, audioContext.currentTime + 0.15);
+
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.15);
+  } catch (e) {}
+}
+
+function playTickSound() {
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+
+    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime);
+    gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.05);
+  } catch (e) {}
+}
+</script>
+</body>
+</html>
