@@ -18,7 +18,6 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
 @keyframes confettiPop{0%{opacity:1;transform:translateY(0) scale(1) rotate(0deg)}100%{opacity:0;transform:translateY(-80px) scale(0.5) rotate(360deg)}}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
 @keyframes timerLow{0%,100%{color:#E63946}50%{color:#FF6B6B}}
-@keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
 @keyframes dropIn{from{opacity:0;transform:translateY(-20px) scale(0.8)}to{opacity:1;transform:translateY(0) scale(1)}}
 
 /* Title */
@@ -60,7 +59,6 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
 
 .level-badge{display:inline-block;background:linear-gradient(135deg,#FF9A56,#FF6B8A);color:white;padding:5px 16px;border-radius:20px;font-size:.85em;font-weight:bold;margin-bottom:15px}
 .question-text{font-size:1.25em;color:#333;margin-bottom:10px;line-height:1.6}
-.question-hint{font-size:.9em;color:#aaa;margin-bottom:15px}
 .scenario-emoji{font-size:3.5em;text-align:center;margin:10px 0}
 .scenario-box{background:#FFF7ED;border-radius:16px;padding:18px;margin:12px 0;border-left:4px solid #FF9A56;font-size:1.05em;line-height:1.7;color:#444}
 
@@ -72,24 +70,26 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
 .option-btn.wrong{border-color:#F44336;background:#FFEBEE;color:#C62828}
 .option-btn.disabled{pointer-events:none;opacity:.7}
 
-/* Drag & Drop */
-.match-area{display:flex;gap:30px;margin-top:20px;justify-content:center;flex-wrap:wrap}
-.match-column{flex:1;min-width:200px;display:flex;flex-direction:column;gap:12px}
-.match-column-title{text-align:center;font-weight:bold;font-size:1.1em;padding:10px;border-radius:12px;margin-bottom:5px}
-.match-left-title{background:#FFE0E6;color:#FF6B8A}
-.match-right-title{background:#E0F2FE;color:#3B82F6}
+/* O/X Buttons */
+.ox-statement{background:#FFF7ED;border-radius:16px;padding:20px;margin:15px 0;border-left:4px solid #A855F7;font-size:1.15em;line-height:1.7;color:#333;text-align:center}
+.ox-buttons{display:flex;gap:20px;justify-content:center;margin-top:20px}
+.ox-btn{width:120px;height:120px;border-radius:50%;border:4px solid;font-size:3em;cursor:pointer;transition:all .3s;display:flex;align-items:center;justify-content:center;font-weight:bold;font-family:inherit}
+.ox-btn:hover{transform:scale(1.1);box-shadow:0 6px 20px rgba(0,0,0,.15)}
+.ox-btn.o-btn{border-color:#4CAF50;background:#E8F5E9;color:#4CAF50}
+.ox-btn.o-btn:hover{background:#C8E6C9}
+.ox-btn.x-btn{border-color:#F44336;background:#FFEBEE;color:#F44336}
+.ox-btn.x-btn:hover{background:#FFCDD2}
+.ox-btn.selected{transform:scale(1.15);box-shadow:0 8px 25px rgba(0,0,0,.2)}
+.ox-btn.correct-answer{border-color:#4CAF50;background:#4CAF50;color:white;transform:scale(1.15)}
+.ox-btn.wrong-answer{border-color:#F44336;background:#F44336;color:white;transform:scale(0.9);opacity:.5}
+.ox-btn.disabled{pointer-events:none;opacity:.6}
 
-.drag-item{padding:14px 18px;border-radius:14px;border:3px solid #FFE0E6;background:white;font-size:1em;cursor:grab;transition:all .2s;user-select:none;touch-action:none;text-align:center}
-.drag-item:active{cursor:grabbing;transform:scale(1.05);box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:10}
-.drag-item.dragging{opacity:.5;border-style:dashed}
-.drag-item.matched{border-color:#4CAF50;background:#E8F5E9;cursor:default;pointer-events:none}
-.drag-item.wrong-match{border-color:#F44336;background:#FFEBEE;animation:shake .4s ease}
-
-.drop-zone{padding:14px 18px;border-radius:14px;border:3px dashed #93C5FD;background:#F0F7FF;font-size:1em;min-height:50px;display:flex;align-items:center;justify-content:center;transition:all .2s;color:#93C5FD;text-align:center}
-.drop-zone.hover{border-color:#3B82F6;background:#DBEAFE;transform:scale(1.03)}
-.drop-zone.filled{border-style:solid;border-color:#3B82F6;background:#EFF6FF;color:#333;cursor:pointer}
-.drop-zone.correct{border-color:#4CAF50;background:#E8F5E9}
-.drop-zone.wrong{border-color:#F44336;background:#FFEBEE;animation:shake .4s ease}
+.ox-sub-question{font-size:.95em;color:#888;margin-top:8px;text-align:center}
+.ox-progress-dots{display:flex;gap:8px;justify-content:center;margin-bottom:15px}
+.ox-dot{width:12px;height:12px;border-radius:50%;background:#FFE0E6;transition:all .3s}
+.ox-dot.done-correct{background:#4CAF50}
+.ox-dot.done-wrong{background:#F44336}
+.ox-dot.current{background:#FF6B8A;transform:scale(1.3)}
 
 /* Feedback */
 .feedback{margin-top:18px;padding:16px 20px;border-radius:16px;font-size:1em;line-height:1.6;animation:fadeIn .3s ease}
@@ -125,13 +125,12 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
   .title-screen h1{font-size:1.8em}
   .game-card{padding:20px}
   .question-text{font-size:1.1em}
-  .match-area{flex-direction:column;gap:20px}
-  .match-column{min-width:unset}
+  .ox-btn{width:90px;height:90px;font-size:2.2em}
+  .ox-buttons{gap:15px}
   .game-hud{flex-direction:column;align-items:flex-start}
   .score-combo-display{width:100%;justify-content:space-between}
   .result-stats{grid-template-columns:1fr}
 }
-
 </style>
 </head>
 <body>
@@ -141,7 +140,7 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
     <div class="title-screen">
       <div class="mascot">🌈</div>
       <h1>性別平等小學堂</h1>
-      <div class="subtitle">生活情境大挑戰</div>
+      <div class="subtitle">⭕❌ 圈叉大挑戰</div>
       <div class="grade">1～6 年級通用</div>
       <button class="btn btn-start" onclick="startGame()">開始挑戰！🚀</button>
     </div>
@@ -187,19 +186,19 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
 </div>
 
 <script>
-const levels = [
+var levels = [
   {
-    type: "match",
+    type: "ox",
     badge: "🚫 刻板印象破解",
-    question: "這些話是「刻板印象」！把每句話配對到正確的破解方式。",
-    hint: "把左邊的刻板印象拖到右邊對應的事實",
-    pairs: [
-      { left: "「男生不可以哭」", right: "😢 每個人都有流淚的權利" },
-      { left: "「女生數學比較差」", right: "🧮 數學能力跟性別無關" },
-      { left: "「護士只有女生能當」", right: "👨‍⚕️ 很多男生也是優秀護理師" },
+    question: "以下這些說法，是對的 ⭕ 還是錯的 ❌？",
+    items: [
+      { statement: "「男生不可以哭」", answer: false, explain: "每個人都有流淚的權利，哭不是丟臉的事！" },
+      { statement: "「女生數學比較差」", answer: false, explain: "數學能力跟性別無關，努力學習最重要！" },
+      { statement: "「護士只有女生能當」", answer: false, explain: "很多男生也是優秀的護理師喔！" },
+      { statement: "「每個人都可以自由選擇自己喜歡的顏色」", answer: true, explain: "沒有所謂『男生色』或『女生色』，喜歡什麼顏色都很棒！" }
     ],
-    correctMsg: "太棒了！這些刻板印象都不是真的。每個人都可以自由選擇自己的興趣和喜好，不受性別限制！",
-    wrongMsg: "男生可以哭、女生數學也很強、男生也能當護理師——這些才是事實喔！"
+    correctMsg: "太棒了！這些刻板印象都不是真的。每個人都可以自由選擇自己的興趣和喜好！",
+    wrongMsg: "記住：男生可以哭、女生數學也很強、男生也能當護理師——不要被刻板印象限制了！"
   },
   {
     type: "choice",
@@ -210,23 +209,23 @@ const levels = [
     options: [
       { text: "🌈 「打籃球不分男女，大家一起玩更好玩！」", correct: true },
       { text: "😞 「算了，女生本來就不適合打球。」", correct: false },
-      { text: "😡 「那你也不准玩跳繩！」", correct: false },
+      { text: "😡 「那你也不准玩跳繩！」", correct: false }
     ],
     correctMsg: "答對了！運動不分性別，每個人都有權利參加自己喜歡的活動。一起玩更開心！",
     wrongMsg: "最好的方式是告訴大家：運動不分男女！每個人都可以參加自己喜歡的運動喔。"
   },
   {
-    type: "match",
-    badge: "🛡️ 求助管道配對",
-    question: "遇到不同狀況，要打給誰求助？把情境和電話配對起來！",
-    hint: "把左邊的狀況拖到右邊正確的求助方式",
-    pairs: [
-      { left: "被大人打或虐待", right: "📞 打 113 保護專線" },
-      { left: "在學校被同學霸凌", right: "🏫 告訴導師或輔導室" },
-      { left: "網路上被陌生人騷擾", right: "📱 截圖＋告訴爸媽" },
+    type: "ox",
+    badge: "🛡️ 求助管道",
+    question: "遇到困難時，以下做法對不對？",
+    items: [
+      { statement: "被大人打或虐待，要打 113 保護專線求救", answer: true, explain: "113 是全國保護專線，24 小時都有人接聽！" },
+      { statement: "在學校被同學霸凌，應該忍耐不說", answer: false, explain: "被霸凌一定要告訴導師或輔導室，忍耐只會讓情況更糟！" },
+      { statement: "網路上被陌生人騷擾，要截圖並告訴爸媽", answer: true, explain: "截圖保留證據，馬上告訴爸媽或老師！" },
+      { statement: "被欺負是因為自己不夠強，要怪自己", answer: false, explain: "被欺負絕對不是你的錯！要勇敢求助！" }
     ],
     correctMsg: "你好棒！記住：被虐待打 113、校園霸凌找老師、網路騷擾截圖告訴家人！",
-    wrongMsg: "正確配對：被虐待→113、霸凌→老師輔導室、網路騷擾→截圖告訴爸媽！"
+    wrongMsg: "正確做法：被虐待→113、霸凌→不能忍耐要告訴老師、網路騷擾→截圖告訴爸媽！"
   },
   {
     type: "choice",
@@ -237,59 +236,58 @@ const levels = [
     options: [
       { text: "😊 「我爸爸煮的菜超好吃的！照顧家人不分爸爸媽媽。」", correct: true },
       { text: "😣 覺得很丟臉，不想說話", correct: false },
-      { text: "😤 「你才奇怪！」", correct: false },
+      { text: "😤 「你才奇怪！」", correct: false }
     ],
     correctMsg: "說得好！照顧家庭不分爸爸媽媽，煮飯、打掃、接送小孩，每個家人都可以做。這是很棒的事！",
     wrongMsg: "照顧家人不是只有媽媽才能做的事喔！爸爸煮飯、接小孩都是很正常、很棒的事！"
   },
   {
-    type: "match",
+    type: "ox",
     badge: "🌟 誰說的才對？",
-    question: "同學們在討論性別的事，誰說的才是對的？把每個人的話配對到正確或錯誤。",
-    hint: "把左邊的話拖到右邊的判斷",
-    pairs: [
-      { left: "小安：「喜歡一個人，對方說不要就該停止」", right: "✅ 正確！尊重別人的意願" },
-      { left: "小豪：「被欺負是因為你太弱了」", right: "❌ 錯！被欺負不是受害者的錯" },
-      { left: "小明：「開玩笑而已，幹嘛生氣」", right: "❌ 錯！讓人不舒服就不是玩笑" },
+    question: "同學們在討論，以下這些話對不對？",
+    items: [
+      { statement: "小安：「喜歡一個人，對方說不要就該停止」", answer: true, explain: "尊重別人的意願，「不要」就是「不要」！" },
+      { statement: "小豪：「被欺負是因為你太弱了」", answer: false, explain: "被欺負不是受害者的錯！" },
+      { statement: "小明：「開玩笑而已，幹嘛生氣」", answer: false, explain: "讓人不舒服就不是玩笑，要尊重別人的感受！" },
+      { statement: "小美：「男生女生都可以當班長」", answer: true, explain: "領導能力和性別無關，每個人都有機會！" }
     ],
-    correctMsg: "🎉 太厲害了！小安說的是對的——尊重意願。小豪和小明的觀念需要改正喔！",
-    wrongMsg: "小安（尊重說不）是對的。小豪（怪受害者）和小明（強迫接受玩笑）是錯的！"
-  },
+    correctMsg: "🎉 太厲害了！尊重意願、不怪受害者、不用玩笑當藉口——你都答對了！",
+    wrongMsg: "記住：尊重說不、不怪受害者、讓人不舒服就不是玩笑、男女都可以當班長！"
+  }
 ];
 
-let currentLevel = 0, score = 0, answered = false, lives = 3, combo = 0, maxCombo = 0;
-let timerInterval = null, timeLeft = 20;
-const TIMER_MAX = 20;
-let matchState = {};
+var currentLevel = 0, score = 0, answered = false, lives = 3, combo = 0, maxCombo = 0;
+var timerInterval = null, timeLeft = 20;
+var TIMER_MAX = 20;
+var oxState = {};
 
-let audioCtx = null;
+var audioCtx = null;
 function getAudioCtx() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
 function playSound(type) {
   try {
-    const ctx = getAudioCtx(), now = ctx.currentTime;
-    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    var ctx = getAudioCtx(), now = ctx.currentTime;
+    var osc = ctx.createOscillator(), gain = ctx.createGain();
     osc.connect(gain); gain.connect(ctx.destination);
     if (type === 'correct') { osc.frequency.setValueAtTime(523, now); osc.frequency.exponentialRampToValueAtTime(1047, now + 0.15); gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); osc.start(now); osc.stop(now + 0.15); }
     else if (type === 'wrong') { osc.frequency.setValueAtTime(500, now); osc.frequency.exponentialRampToValueAtTime(250, now + 0.25); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25); osc.start(now); osc.stop(now + 0.25); }
     else if (type === 'tick') { osc.frequency.setValueAtTime(880, now); gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05); osc.start(now); osc.stop(now + 0.05); }
-    else if (type === 'drop') { osc.frequency.setValueAtTime(660, now); osc.frequency.exponentialRampToValueAtTime(880, now + 0.08); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08); osc.start(now); osc.stop(now + 0.08); }
   } catch(e) {}
 }
 
 function createConfetti() {
-  const em = ['🎉','✨','⭐','🌟','💫','🌈','💖'];
-  for (let i = 0; i < 14; i++) {
-    const p = document.createElement('div');
+  var em = ['🎉','✨','⭐','🌟','💫','🌈','💖'];
+  for (var i = 0; i < 14; i++) {
+    var p = document.createElement('div');
     p.className = 'confetti-particle';
     p.textContent = em[Math.floor(Math.random() * em.length)];
     p.style.left = (10 + Math.random() * 80) + '%';
     p.style.top = (30 + Math.random() * 40) + '%';
     document.body.appendChild(p);
-    setTimeout(function() { p.remove(); }, 800);
+    setTimeout(function(el) { el.remove(); }, 800, p);
   }
 }
 function createFloatingScore(x, y, pts, ok) {
-  const f = document.createElement('div');
+  var f = document.createElement('div');
   f.className = 'floating-score ' + (ok ? 'correct' : 'wrong');
   f.textContent = ok ? '+' + pts + ' 🔥' : '-1 ❤️';
   f.style.left = x + 'px'; f.style.top = y + 'px';
@@ -311,7 +309,8 @@ function updateCombo() {
 }
 function updateProgress() {
   document.getElementById('progressFill').style.width = ((currentLevel / levels.length) * 100) + '%';
-  document.getElementById('progressText').innerHTML = '第 ' + (currentLevel + 1) + ' 關 / 共 ' + levels.length + ' 關'; document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('progressText').innerHTML = '第 ' + (currentLevel + 1) + ' 關 / 共 ' + levels.length + ' 關';
+  document.getElementById('scoreDisplay').textContent = score;
 }
 
 function startTimer() {
@@ -346,11 +345,12 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 function startGame() {
-  currentLevel = 0; score = 0; answered = false; lives = 3; combo = 0; maxCombo = 0; matchState = {};
-  updateLives(); updateCombo(); showScreen('gameScreen'); renderLevel(); }
+  currentLevel = 0; score = 0; answered = false; lives = 3; combo = 0; maxCombo = 0; oxState = {};
+  updateLives(); updateCombo(); showScreen('gameScreen'); renderLevel();
+}
 
 function renderLevel() {
-  answered = false; matchState = {}; updateProgress();
+  answered = false; oxState = {}; updateProgress();
   if (timerInterval) clearInterval(timerInterval);
   var lv = levels[currentLevel], card = document.getElementById('gameCard');
   card.style.animation = 'none'; card.offsetHeight; card.style.animation = 'fadeIn .5s ease';
@@ -362,100 +362,119 @@ function renderLevel() {
       '<div class="question-text">' + lv.question + '</div>' +
       '<div class="options">' + lv.options.map(function(o, i) {
         return '<button class="option-btn" onclick="selectOption(' + i + ')">' + o.text + '</button>';
-      }).join('') + '</div><div id="feedback"></div><div id="nextArea"></div>'; } else if (lv.type === 'match') {
-    renderMatchLevel(lv, card);
+      }).join('') + '</div><div id="feedback"></div><div id="nextArea"></div>';
+    startTimer();
+  } else if (lv.type === 'ox') {
+    oxState = { currentItem: 0, correctCount: 0, totalItems: lv.items.length };
+    TIMER_MAX = 15 * lv.items.length;
+    renderOxItem(lv, card);
+    startTimer();
   }
-  startTimer();
 }
 
-function renderMatchLevel(lv, card) {
-  var rs = lv.pairs.map(function(p, i) { return { text: p.right, origIdx: i }; });
-  for (var i = rs.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = rs[i]; rs[i] = rs[j]; rs[j] = t; }
-  matchState = { pairs: lv.pairs, matched: {}, rightMap: rs, totalPairs: lv.pairs.length };
+function renderOxItem(lv, card) {
+  var idx = oxState.currentItem;
+  var item = lv.items[idx];
 
-  var leftHTML = '<div class="match-column"><div class="match-column-title match-left-title">📌 題目</div>';
-  lv.pairs.forEach(function(p, i) {
-    leftHTML += '<div class="drag-item" draggable="true" data-idx="' + i + '" id="drag-' + i + '" ontouchstart="touchStart(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)">' + p.left + '</div>';
-  });
-  leftHTML += '</div>';
-
-  var rightHTML = '<div class="match-column"><div class="match-column-title match-right-title">🎯 配對</div>';
-  rs.forEach(function(item, i) {
-    rightHTML += '<div class="drop-zone" data-orig="' + item.origIdx + '" id="drop-' + i + '">❓ ' + item.text + '</div>';
-  });
-  rightHTML += '</div>';
+  var dotsHTML = '<div class="ox-progress-dots">';
+  for (var i = 0; i < lv.items.length; i++) {
+    var cls = 'ox-dot';
+    if (i < idx) cls += oxState['result_' + i] ? ' done-correct' : ' done-wrong';
+    else if (i === idx) cls += ' current';
+    dotsHTML += '<div class="' + cls + '"></div>';
+  }
+  dotsHTML += '</div>';
 
   card.innerHTML = '<span class="level-badge">' + lv.badge + '</span>' +
     '<div class="question-text">' + lv.question + '</div>' +
-    '<div class="question-hint">' + (lv.hint || '') + '</div>' +
-    '<div class="match-area">' + leftHTML + rightHTML + '</div>' +
-    '<div id="feedback"></div><div id="nextArea"></div>'; card.querySelectorAll('.drag-item').forEach(function(el) {
-    el.addEventListener('dragstart', function(e) { e.dataTransfer.setData('text/plain', el.dataset.idx); el.classList.add('dragging'); });
-    el.addEventListener('dragend', function() { el.classList.remove('dragging'); });
-  });
-  card.querySelectorAll('.drop-zone').forEach(function(zone) {
-    zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('hover'); });
-    zone.addEventListener('dragleave', function() { zone.classList.remove('hover'); });
-    zone.addEventListener('drop', function(e) { e.preventDefault(); zone.classList.remove('hover'); handleMatchDrop(parseInt(e.dataTransfer.getData('text/plain')), parseInt(zone.dataset.orig), zone); });
-  });
+    dotsHTML +
+    '<div class="ox-sub-question">第 ' + (idx + 1) + ' / ' + lv.items.length + ' 題</div>' +
+    '<div class="ox-statement">' + item.statement + '</div>' +
+    '<div class="ox-buttons">' +
+      '<button class="ox-btn o-btn" id="oxO" onclick="selectOX(true)">⭕</button>' +
+      '<button class="ox-btn x-btn" id="oxX" onclick="selectOX(false)">❌</button>' +
+    '</div>' +
+    '<div id="oxExplain"></div>' +
+    '<div id="feedback"></div><div id="nextArea"></div>';
 }
 
-var touchDragEl = null, touchClone = null;
-function touchStart(e) {
-  if (answered) return;
-  var el = e.currentTarget;
-  if (el.classList.contains('matched')) return;
-  touchDragEl = el; el.classList.add('dragging');
-  touchClone = el.cloneNode(true);
-  touchClone.style.position = 'fixed'; touchClone.style.zIndex = '1000'; touchClone.style.pointerEvents = 'none';
-  touchClone.style.opacity = '0.85'; touchClone.style.width = el.offsetWidth + 'px';
-  touchClone.style.transform = 'scale(1.08)'; touchClone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
-  document.body.appendChild(touchClone);
-  var touch = e.touches[0];
-  touchClone.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
-  touchClone.style.top = (touch.clientY - 30) + 'px';
-}
-function touchMove(e) {
-  if (!touchClone) return; e.preventDefault();
-  var touch = e.touches[0];
-  touchClone.style.left = (touch.clientX - touchClone.offsetWidth / 2) + 'px';
-  touchClone.style.top = (touch.clientY - 30) + 'px';
-  document.querySelectorAll('.drop-zone').forEach(function(z) { z.classList.remove('hover'); });
-  var target = document.elementFromPoint(touch.clientX, touch.clientY);
-  if (target && target.classList.contains('drop-zone')) target.classList.add('hover');
-}
-function touchEnd(e) {
-  if (!touchDragEl || !touchClone) return;
-  touchDragEl.classList.remove('dragging'); touchClone.remove(); touchClone = null;
-  var touch = e.changedTouches[0];
-  var target = document.elementFromPoint(touch.clientX, touch.clientY);
-  if (target && target.classList.contains('drop-zone')) { target.classList.remove('hover'); handleMatchDrop(parseInt(touchDragEl.dataset.idx), parseInt(target.dataset.orig), target); }
-  touchDragEl = null;
-}
+function selectOX(userAnswer) {
+  var lv = levels[currentLevel];
+  var idx = oxState.currentItem;
+  var item = lv.items[idx];
+  var isCorrect = (userAnswer === item.answer);
 
-function handleMatchDrop(dragIdx, dropOrigIdx, zoneEl) {
-  if (answered) return;
-  if (matchState.matched[dragIdx] !== undefined) return;
-  var isCorrect = dragIdx === dropOrigIdx;
-  var dragEl = document.getElementById('drag-' + dragIdx);
+  var oBtn = document.getElementById('oxO');
+  var xBtn = document.getElementById('oxX');
+  oBtn.classList.add('disabled');
+  xBtn.classList.add('disabled');
+
+  if (item.answer === true) {
+    oBtn.classList.add('correct-answer');
+    if (!isCorrect) xBtn.classList.add('wrong-answer');
+  } else {
+    xBtn.classList.add('correct-answer');
+    if (!isCorrect) oBtn.classList.add('wrong-answer');
+  }
+
+  oxState['result_' + idx] = isCorrect;
+
+  var explainEl = document.getElementById('oxExplain');
+  explainEl.innerHTML = '<div class="feedback ' + (isCorrect ? 'correct' : 'wrong') + '" style="margin-top:12px">' +
+    (isCorrect ? '✅ 答對了！' : '💡 答錯了！') + ' ' + item.explain + '</div>';
 
   if (isCorrect) {
-    playSound('drop'); dragEl.classList.add('matched'); zoneEl.classList.add('correct'); zoneEl.classList.add('filled');
-    matchState.matched[dragIdx] = true;
-    if (Object.keys(matchState.matched).length === matchState.totalPairs) {
-      answered = true; if (timerInterval) clearInterval(timerInterval);
-      combo++; var timeBonus = Math.max(0, Math.floor(timeLeft / 2));
-      var pts = 15 + timeBonus + (combo > 1 ? combo * 3 : 0);
-      score += pts;
-      createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, pts, true);
-      createConfetti(); updateCombo();
-      document.getElementById('scoreDisplay').textContent = score;
-      showFeedbackEl(levels[currentLevel].correctMsg, true); showNextBtn();
-    }
+    playSound('correct');
+    oxState.correctCount++;
   } else {
-    playSound('wrong'); zoneEl.classList.add('wrong'); dragEl.classList.add('wrong-match');
-    setTimeout(function() { zoneEl.classList.remove('wrong'); dragEl.classList.remove('wrong-match'); }, 600);
+    playSound('wrong');
   }
+
+  // Move to next item after delay
+  setTimeout(function() {
+    oxState.currentItem++;
+    if (oxState.currentItem >= lv.items.length) {
+      // All items done
+      var allCorrect = oxState.correctCount === lv.items.length;
+      answered = true;
+      if (timerInterval) clearInterval(timerInterval);
+
+      if (allCorrect) {
+        combo++;
+        var timeBonus = Math.max(0, Math.floor(timeLeft / 2));
+        var pts = 15 + timeBonus + (combo > 1 ? combo * 3 : 0);
+        score += pts;
+        createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, pts, true);
+        createConfetti();
+      } else if (oxState.correctCount >= lv.items.length / 2) {
+        combo++;
+        var pts2 = 5 + oxState.correctCount * 2;
+        score += pts2;
+        createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, pts2, true);
+      } else {
+        lives--; combo = 0; updateLives();
+        var card2 = document.getElementById('gameCard');
+        card2.classList.add('shake-anim');
+        setTimeout(function() { card2.classList.remove('shake-anim'); }, 500);
+      }
+
+      updateCombo();
+      document.getElementById('scoreDisplay').textContent = score;
+
+      var resultMsg = '你答對了 ' + oxState.correctCount + ' / ' + lv.items.length + ' 題！';
+      var feedbackMsg = allCorrect ? lv.correctMsg : lv.wrongMsg;
+
+      var card3 = document.getElementById('gameCard');
+      card3.innerHTML = '<span class="level-badge">' + lv.badge + '</span>' +
+        '<div class="question-text" style="text-align:center">' + resultMsg + '</div>' +
+        '<div id="feedback"><div class="feedback ' + (allCorrect ? 'correct' : 'wrong') + '">' +
+        (allCorrect ? '✅ ' : '💡 ') + feedbackMsg + '</div></div>' +
+        '<div id="nextArea"></div>';
+      showNextBtn();
+    } else {
+      renderOxItem(lv, document.getElementById('gameCard'));
+    }
+  }, 1200);
 }
 
 function selectOption(idx) {
@@ -485,13 +504,21 @@ function selectOption(idx) {
   showFeedbackEl(ok ? lv.correctMsg : lv.wrongMsg, ok); showNextBtn();
 }
 
-function disableAll() { document.querySelectorAll('.option-btn, .drag-item').forEach(function(el) { el.classList.add('disabled'); el.style.pointerEvents = 'none'; }); }
-function showFeedbackEl(msg, ok) { document.getElementById('feedback').innerHTML = '<div class="feedback ' + (ok ? 'correct' : 'wrong') + '"><span>' + (ok ? '✅' : '💡') + '</span> ' + msg + '</div>'; }
+function disableAll() {
+  document.querySelectorAll('.option-btn, .ox-btn').forEach(function(el) {
+    el.classList.add('disabled'); el.style.pointerEvents = 'none';
+  });
+}
+function showFeedbackEl(msg, ok) {
+  document.getElementById('feedback').innerHTML = '<div class="feedback ' + (ok ? 'correct' : 'wrong') + '"><span>' + (ok ? '✅' : '💡') + '</span> ' + msg + '</div>';
+}
 function showNextBtn() {
   var label = currentLevel < levels.length - 1 ? '下一關 ➜' : '看結果 🎉';
-  document.getElementById('nextArea').innerHTML = '<div style="text-align:center"><button class="btn btn-next" onclick="nextLevel()">' + label + '</button></div>'; }
+  document.getElementById('nextArea').innerHTML = '<div style="text-align:center"><button class="btn btn-next" onclick="nextLevel()">' + label + '</button></div>';
+}
 function nextLevel() {
   currentLevel++;
+  TIMER_MAX = 20;
   if (currentLevel >= levels.length) showResult();
   else { renderLevel(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 }
@@ -510,14 +537,16 @@ function showResult() {
   else if (pct >= 0.5) { emoji = '😊'; title = '做得很好！'; stars = '⭐⭐'; msg = '你已經學到很多了！\n繼續保持尊重和善良！'; }
   else { emoji = '💪'; title = '繼續加油！'; stars = '⭐'; msg = '沒關係，每次嘗試都會更進步！\n再玩一次試試看吧！'; }
   document.getElementById('resultEmoji').textContent = emoji;
-  document.getElementById('resultTitle').innerHTML = title; document.getElementById('resultStars').textContent = stars;
-  document.getElementById('resultScore').innerHTML = '最終分數：' + score + ' 分'; document.getElementById('resultStats').innerHTML =
+  document.getElementById('resultTitle').innerHTML = title;
+  document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').innerHTML = '最終分數：' + score + ' 分';
+  document.getElementById('resultStats').innerHTML =
     '<div class="result-stat"><div class="result-stat-label">最高連擊</div><div class="result-stat-value">🔥x' + maxCombo + '</div></div>' +
     '<div class="result-stat"><div class="result-stat-label">剩餘生命</div><div class="result-stat-value">' + (lives > 0 ? '❤️'.repeat(lives) : '💔') + '</div></div>' +
     '<div class="result-stat"><div class="result-stat-label">總關卡</div><div class="result-stat-value">' + levels.length + '/' + levels.length + '</div></div>' +
-    '<div class="result-stat"><div class="result-stat-label">總分</div><div class="result-stat-value">⭐ ' + score + '</div></div>'; document.getElementById('resultMsg').innerHTML = msg; }
-
-
+    '<div class="result-stat"><div class="result-stat-label">總分</div><div class="result-stat-value">⭐ ' + score + '</div></div>';
+  document.getElementById('resultMsg').innerHTML = msg;
+}
 </script>
 </body>
 </html>
