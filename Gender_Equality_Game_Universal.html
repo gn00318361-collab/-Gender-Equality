@@ -20,7 +20,6 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
 @keyframes timerLow{0%,100%{color:#E63946}50%{color:#FF6B6B}}
 @keyframes slideIn{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:translateX(0)}}
 @keyframes dropIn{from{opacity:0;transform:translateY(-20px) scale(0.8)}to{opacity:1;transform:translateY(0) scale(1)}}
-@keyframes bounceIn{0%{transform:scale(0)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
 
 /* Title */
 .title-screen{text-align:center;padding:40px 20px;background:linear-gradient(135deg,#FF9A56 0%,#FF6B8A 50%,#A855F7 100%);border-radius:30px;color:white;box-shadow:0 10px 40px rgba(255,107,138,.3)}
@@ -65,7 +64,7 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
 .scenario-emoji{font-size:3.5em;text-align:center;margin:10px 0}
 .scenario-box{background:#FFF7ED;border-radius:16px;padding:18px;margin:12px 0;border-left:4px solid #FF9A56;font-size:1.05em;line-height:1.7;color:#444}
 
-/* Choice options */
+/* Choice */
 .options{display:flex;flex-direction:column;gap:12px;margin-top:15px}
 .option-btn{padding:16px 20px;border-radius:16px;border:3px solid #FFE0E6;background:#FFFAFA;font-size:1.05em;font-family:inherit;cursor:pointer;transition:all .3s;text-align:left;color:#444}
 .option-btn:hover{border-color:#FF6B8A;background:#FFF0F3;transform:scale(1.02)}
@@ -73,14 +72,14 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
 .option-btn.wrong{border-color:#F44336;background:#FFEBEE;color:#C62828}
 .option-btn.disabled{pointer-events:none;opacity:.7}
 
-/* Drag & Drop Matching */
+/* Drag & Drop */
 .match-area{display:flex;gap:30px;margin-top:20px;justify-content:center;flex-wrap:wrap}
 .match-column{flex:1;min-width:200px;display:flex;flex-direction:column;gap:12px}
 .match-column-title{text-align:center;font-weight:bold;font-size:1.1em;padding:10px;border-radius:12px;margin-bottom:5px}
 .match-left-title{background:#FFE0E6;color:#FF6B8A}
 .match-right-title{background:#E0F2FE;color:#3B82F6}
 
-.drag-item{padding:14px 18px;border-radius:14px;border:3px solid #FFE0E6;background:white;font-size:1em;cursor:grab;transition:all .2s;user-select:none;touch-action:none;text-align:center;position:relative}
+.drag-item{padding:14px 18px;border-radius:14px;border:3px solid #FFE0E6;background:white;font-size:1em;cursor:grab;transition:all .2s;user-select:none;touch-action:none;text-align:center}
 .drag-item:active{cursor:grabbing;transform:scale(1.05);box-shadow:0 6px 20px rgba(0,0,0,.15);z-index:10}
 .drag-item.dragging{opacity:.5;border-style:dashed}
 .drag-item.matched{border-color:#4CAF50;background:#E8F5E9;cursor:default;pointer-events:none}
@@ -97,7 +96,7 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
 .feedback.correct{background:#E8F5E9;color:#2E7D32;border-left:4px solid #4CAF50}
 .feedback.wrong{background:#FFF3E0;color:#E65100;border-left:4px solid #FFB347}
 
-/* Floating effects */
+/* Effects */
 .floating-score{position:fixed;font-weight:bold;font-size:1.3em;pointer-events:none;animation:floatUp 1s ease-out forwards;z-index:100}
 .floating-score.correct{color:#4CAF50}
 .floating-score.wrong{color:#E63946}
@@ -132,12 +131,12 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
   .score-combo-display{width:100%;justify-content:space-between}
   .result-stats{grid-template-columns:1fr}
 }
+
 </style>
 </head>
 <body>
 <div class="game-container" id="app">
 
-  <!-- Title Screen -->
   <div class="screen active" id="titleScreen">
     <div class="title-screen">
       <div class="mascot">🌈</div>
@@ -148,7 +147,6 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
     </div>
   </div>
 
-  <!-- Game Screen -->
   <div class="screen" id="gameScreen">
     <div class="game-hud">
       <div class="lives-display" id="livesDisplay"></div>
@@ -165,7 +163,6 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
     <div class="game-card" id="gameCard"></div>
   </div>
 
-  <!-- Game Over Screen -->
   <div class="screen" id="gameoverScreen">
     <div class="gameover-card">
       <div class="gameover-emoji">💔</div>
@@ -176,7 +173,6 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
     </div>
   </div>
 
-  <!-- Result Screen -->
   <div class="screen" id="resultScreen">
     <div class="result-card">
       <div class="result-emoji" id="resultEmoji"></div>
@@ -188,11 +184,9 @@ body{font-family:"Microsoft JhengHei","PingFang TC",sans-serif;background:linear
       <button class="btn btn-start" onclick="startGame()">再玩一次 🌟</button>
     </div>
   </div>
-
 </div>
 
 <script>
-// ===== LEVEL DATA =====
 const levels = [
   {
     type: "match",
@@ -203,10 +197,9 @@ const levels = [
       { left: "「男生不可以哭」", right: "😢 每個人都有流淚的權利" },
       { left: "「女生數學比較差」", right: "🧮 數學能力跟性別無關" },
       { left: "「護士只有女生能當」", right: "👨‍⚕️ 很多男生也是優秀護理師" },
-      { left: "「粉紅色是女生的」", right: "🎨 顏色沒有分性別" },
     ],
     correctMsg: "太棒了！這些刻板印象都不是真的。每個人都可以自由選擇自己的興趣和喜好，不受性別限制！",
-    wrongMsg: "男生可以哭、女生數學也很強、男生也能當護理師、顏色不分性別——這些才是事實喔！"
+    wrongMsg: "男生可以哭、女生數學也很強、男生也能當護理師——這些才是事實喔！"
   },
   {
     type: "choice",
@@ -231,10 +224,9 @@ const levels = [
       { left: "被大人打或虐待", right: "📞 打 113 保護專線" },
       { left: "在學校被同學霸凌", right: "🏫 告訴導師或輔導室" },
       { left: "網路上被陌生人騷擾", right: "📱 截圖＋告訴爸媽" },
-      { left: "路上被跟蹤覺得害怕", right: "🚨 跑進商店求助或打 110" },
     ],
-    correctMsg: "你好棒！記住：被虐待打 113、校園霸凌找老師、網路騷擾截圖告訴家人、被跟蹤跑進商店或打 110！",
-    wrongMsg: "正確配對：被虐待→113、霸凌→老師輔導室、網路騷擾→截圖告訴爸媽、被跟蹤→跑進商店或打110！"
+    correctMsg: "你好棒！記住：被虐待打 113、校園霸凌找老師、網路騷擾截圖告訴家人！",
+    wrongMsg: "正確配對：被虐待→113、霸凌→老師輔導室、網路騷擾→截圖告訴爸媽！"
   },
   {
     type: "choice",
@@ -258,111 +250,70 @@ const levels = [
     pairs: [
       { left: "小安：「喜歡一個人，對方說不要就該停止」", right: "✅ 正確！尊重別人的意願" },
       { left: "小豪：「被欺負是因為你太弱了」", right: "❌ 錯！被欺負不是受害者的錯" },
-      { left: "小美：「每個人的身體界線不一樣」", right: "✅ 正確！要尊重每個人的感受" },
       { left: "小明：「開玩笑而已，幹嘛生氣」", right: "❌ 錯！讓人不舒服就不是玩笑" },
     ],
-    correctMsg: "🎉 太厲害了！小安和小美說的是對的——尊重意願、尊重感受。小豪和小明的觀念需要改正喔！",
-    wrongMsg: "小安（尊重說不）和小美（尊重界線）是對的。小豪（怪受害者）和小明（強迫接受玩笑）是錯的！"
+    correctMsg: "🎉 太厲害了！小安說的是對的——尊重意願。小豪和小明的觀念需要改正喔！",
+    wrongMsg: "小安（尊重說不）是對的。小豪（怪受害者）和小明（強迫接受玩笑）是錯的！"
   },
 ];
 
-// ===== GAME STATE =====
 let currentLevel = 0, score = 0, answered = false, lives = 3, combo = 0, maxCombo = 0;
 let timerInterval = null, timeLeft = 20;
 const TIMER_MAX = 20;
 let matchState = {};
 
-// ===== AUDIO =====
 let audioCtx = null;
-function getAudioCtx() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
+function getAudioCtx() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); return audioCtx; }
 function playSound(type) {
   try {
-    const ctx = getAudioCtx();
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    if (type === 'correct') {
-      osc.frequency.setValueAtTime(523, now);
-      osc.frequency.exponentialRampToValueAtTime(1047, now + 0.15);
-      gain.gain.setValueAtTime(0.25, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-      osc.start(now); osc.stop(now + 0.15);
-    } else if (type === 'wrong') {
-      osc.frequency.setValueAtTime(500, now);
-      osc.frequency.exponentialRampToValueAtTime(250, now + 0.25);
-      gain.gain.setValueAtTime(0.2, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-      osc.start(now); osc.stop(now + 0.25);
-    } else if (type === 'tick') {
-      osc.frequency.setValueAtTime(880, now);
-      gain.gain.setValueAtTime(0.08, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-      osc.start(now); osc.stop(now + 0.05);
-    } else if (type === 'drop') {
-      osc.frequency.setValueAtTime(660, now);
-      osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
-      gain.gain.setValueAtTime(0.15, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-      osc.start(now); osc.stop(now + 0.08);
-    }
+    const ctx = getAudioCtx(), now = ctx.currentTime;
+    const osc = ctx.createOscillator(), gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    if (type === 'correct') { osc.frequency.setValueAtTime(523, now); osc.frequency.exponentialRampToValueAtTime(1047, now + 0.15); gain.gain.setValueAtTime(0.25, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); osc.start(now); osc.stop(now + 0.15); }
+    else if (type === 'wrong') { osc.frequency.setValueAtTime(500, now); osc.frequency.exponentialRampToValueAtTime(250, now + 0.25); gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25); osc.start(now); osc.stop(now + 0.25); }
+    else if (type === 'tick') { osc.frequency.setValueAtTime(880, now); gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05); osc.start(now); osc.stop(now + 0.05); }
+    else if (type === 'drop') { osc.frequency.setValueAtTime(660, now); osc.frequency.exponentialRampToValueAtTime(880, now + 0.08); gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08); osc.start(now); osc.stop(now + 0.08); }
   } catch(e) {}
 }
 
-// ===== EFFECTS =====
 function createConfetti() {
-  const emojis = ['🎉','✨','⭐','🌟','💫','🌈','💖'];
+  const em = ['🎉','✨','⭐','🌟','💫','🌈','💖'];
   for (let i = 0; i < 14; i++) {
     const p = document.createElement('div');
     p.className = 'confetti-particle';
-    p.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    p.textContent = em[Math.floor(Math.random() * em.length)];
     p.style.left = (10 + Math.random() * 80) + '%';
     p.style.top = (30 + Math.random() * 40) + '%';
     document.body.appendChild(p);
-    setTimeout(() => p.remove(), 800);
+    setTimeout(function() { p.remove(); }, 800);
   }
 }
-function createFloatingScore(x, y, points, isCorrect) {
+function createFloatingScore(x, y, pts, ok) {
   const f = document.createElement('div');
-  f.className = 'floating-score ' + (isCorrect ? 'correct' : 'wrong');
-  f.textContent = isCorrect ? '+' + points + ' 🔥' : '-1 ❤️';
-  f.style.left = x + 'px';
-  f.style.top = y + 'px';
+  f.className = 'floating-score ' + (ok ? 'correct' : 'wrong');
+  f.textContent = ok ? '+' + pts + ' 🔥' : '-1 ❤️';
+  f.style.left = x + 'px'; f.style.top = y + 'px';
   document.body.appendChild(f);
-  setTimeout(() => f.remove(), 1000);
+  setTimeout(function() { f.remove(); }, 1000);
 }
 
-// ===== HUD =====
 function updateLives() {
-  const el = document.getElementById('livesDisplay');
-  let html = '';
-  for (let i = 0; i < 3; i++) {
-    html += '<span class="heart' + (i >= lives ? ' lost' : '') + '">❤️</span>';
-  }
+  var el = document.getElementById('livesDisplay'), html = '';
+  for (var i = 0; i < 3; i++) html += '<span class="heart' + (i >= lives ? ' lost' : '') + '">❤️</span>';
   el.innerHTML = html;
-  if (lives <= 0) { setTimeout(showGameover, 300); }
+  if (lives <= 0) setTimeout(showGameover, 300);
 }
 function updateCombo() {
-  const el = document.getElementById('comboDisplay');
-  if (combo > 1) {
-    el.classList.add('active');
-    document.getElementById('comboValue').textContent = combo;
-  } else {
-    el.classList.remove('active');
-  }
+  var el = document.getElementById('comboDisplay');
+  if (combo > 1) { el.classList.add('active'); document.getElementById('comboValue').textContent = combo; }
+  else el.classList.remove('active');
   if (combo > maxCombo) maxCombo = combo;
 }
 function updateProgress() {
   document.getElementById('progressFill').style.width = ((currentLevel / levels.length) * 100) + '%';
-  document.getElementById('progressText').textContent = '第 ' + (currentLevel + 1) + ' 關 / 共 ' + levels.length + ' 關';
-  document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('progressText').innerHTML = '第 ' + (currentLevel + 1) + ' 關 / 共 ' + levels.length + ' 關'; document.getElementById('scoreDisplay').textContent = score;
 }
 
-// ===== TIMER =====
 function startTimer() {
   timeLeft = TIMER_MAX;
   document.getElementById('timerContainer').style.display = 'block';
@@ -372,224 +323,146 @@ function startTimer() {
     timeLeft--;
     updateTimerDisplay();
     if (timeLeft <= 5 && timeLeft > 0) playSound('tick');
-    if (timeLeft <= 0) {
-      clearInterval(timerInterval);
-      if (!answered) { answered = true; handleTimeout(); }
-    }
+    if (timeLeft <= 0) { clearInterval(timerInterval); if (!answered) { answered = true; handleTimeout(); } }
   }, 1000);
 }
 function updateTimerDisplay() {
-  const circle = document.getElementById('timerCircle');
-  circle.style.setProperty('--percentage', (timeLeft / TIMER_MAX * 100) + '%');
-  circle.textContent = timeLeft;
-  if (timeLeft <= 5) circle.classList.add('warning');
-  else circle.classList.remove('warning');
+  var c = document.getElementById('timerCircle');
+  c.style.setProperty('--percentage', (timeLeft / TIMER_MAX * 100) + '%');
+  c.textContent = timeLeft;
+  if (timeLeft <= 5) c.classList.add('warning'); else c.classList.remove('warning');
 }
 function handleTimeout() {
-  const card = document.getElementById('gameCard');
+  var card = document.getElementById('gameCard');
   card.classList.add('shake-anim');
-  lives--; combo = 0;
-  updateLives(); updateCombo();
-  playSound('wrong');
+  lives--; combo = 0; updateLives(); updateCombo(); playSound('wrong');
   disableAll();
   showFeedbackEl('⏰ 時間到了！下次要更快哦！', false);
-  setTimeout(function() {
-    card.classList.remove('shake-anim');
-    showNextBtn();
-  }, 500);
+  setTimeout(function() { card.classList.remove('shake-anim'); showNextBtn(); }, 500);
 }
 
-// ===== SCREENS =====
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
 }
-
 function startGame() {
-  currentLevel = 0; score = 0; answered = false; lives = 3; combo = 0; maxCombo = 0;
-  matchState = {};
-  updateLives(); updateCombo();
-  showScreen('gameScreen');
-  renderLevel();
-}
+  currentLevel = 0; score = 0; answered = false; lives = 3; combo = 0; maxCombo = 0; matchState = {};
+  updateLives(); updateCombo(); showScreen('gameScreen'); renderLevel(); }
 
-// ===== RENDER =====
 function renderLevel() {
-  answered = false;
-  matchState = {};
-  updateProgress();
+  answered = false; matchState = {}; updateProgress();
   if (timerInterval) clearInterval(timerInterval);
-  const lv = levels[currentLevel];
-  const card = document.getElementById('gameCard');
-  card.style.animation = 'none';
-  card.offsetHeight;
-  card.style.animation = 'fadeIn .5s ease';
+  var lv = levels[currentLevel], card = document.getElementById('gameCard');
+  card.style.animation = 'none'; card.offsetHeight; card.style.animation = 'fadeIn .5s ease';
 
   if (lv.type === 'choice') {
-    card.innerHTML =
-      '<span class="level-badge">' + lv.badge + '</span>' +
+    card.innerHTML = '<span class="level-badge">' + lv.badge + '</span>' +
       '<div class="scenario-emoji">' + lv.emoji + '</div>' +
       (lv.scenario ? '<div class="scenario-box">' + lv.scenario + '</div>' : '') +
       '<div class="question-text">' + lv.question + '</div>' +
       '<div class="options">' + lv.options.map(function(o, i) {
         return '<button class="option-btn" onclick="selectOption(' + i + ')">' + o.text + '</button>';
-      }).join('') + '</div>' +
-      '<div id="feedback"></div><div id="nextArea"></div>';
-  } else if (lv.type === 'match') {
+      }).join('') + '</div><div id="feedback"></div><div id="nextArea"></div>'; } else if (lv.type === 'match') {
     renderMatchLevel(lv, card);
   }
-
   startTimer();
 }
 
-// ===== MATCH LEVEL (Drag & Drop) =====
 function renderMatchLevel(lv, card) {
-  // Shuffle right side
-  const rightShuffled = lv.pairs.map(function(p, i) { return { text: p.right, origIdx: i }; });
-  for (let i = rightShuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const t = rightShuffled[i]; rightShuffled[i] = rightShuffled[j]; rightShuffled[j] = t;
-  }
+  var rs = lv.pairs.map(function(p, i) { return { text: p.right, origIdx: i }; });
+  for (var i = rs.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = rs[i]; rs[i] = rs[j]; rs[j] = t; }
+  matchState = { pairs: lv.pairs, matched: {}, rightMap: rs, totalPairs: lv.pairs.length };
 
-  matchState = { pairs: lv.pairs, matched: {}, rightMap: rightShuffled, totalPairs: lv.pairs.length };
-
-  let leftHTML = '<div class="match-column"><div class="match-column-title match-left-title">📌 題目</div>';
+  var leftHTML = '<div class="match-column"><div class="match-column-title match-left-title">📌 題目</div>';
   lv.pairs.forEach(function(p, i) {
-    leftHTML += '<div class="drag-item" draggable="true" data-idx="' + i + '" id="drag-' + i + '"' +
-      ' ontouchstart="touchStart(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)">' +
-      p.left + '</div>';
+    leftHTML += '<div class="drag-item" draggable="true" data-idx="' + i + '" id="drag-' + i + '" ontouchstart="touchStart(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd(event)">' + p.left + '</div>';
   });
   leftHTML += '</div>';
 
-  let rightHTML = '<div class="match-column"><div class="match-column-title match-right-title">🎯 配對</div>';
-  rightShuffled.forEach(function(item, i) {
+  var rightHTML = '<div class="match-column"><div class="match-column-title match-right-title">🎯 配對</div>';
+  rs.forEach(function(item, i) {
     rightHTML += '<div class="drop-zone" data-orig="' + item.origIdx + '" id="drop-' + i + '">❓ ' + item.text + '</div>';
   });
   rightHTML += '</div>';
 
-  card.innerHTML =
-    '<span class="level-badge">' + lv.badge + '</span>' +
+  card.innerHTML = '<span class="level-badge">' + lv.badge + '</span>' +
     '<div class="question-text">' + lv.question + '</div>' +
     '<div class="question-hint">' + (lv.hint || '') + '</div>' +
     '<div class="match-area">' + leftHTML + rightHTML + '</div>' +
-    '<div id="feedback"></div><div id="nextArea"></div>';
-
-  // Desktop drag events
-  card.querySelectorAll('.drag-item').forEach(function(el) {
-    el.addEventListener('dragstart', function(e) {
-      e.dataTransfer.setData('text/plain', el.dataset.idx);
-      el.classList.add('dragging');
-    });
+    '<div id="feedback"></div><div id="nextArea"></div>'; card.querySelectorAll('.drag-item').forEach(function(el) {
+    el.addEventListener('dragstart', function(e) { e.dataTransfer.setData('text/plain', el.dataset.idx); el.classList.add('dragging'); });
     el.addEventListener('dragend', function() { el.classList.remove('dragging'); });
   });
   card.querySelectorAll('.drop-zone').forEach(function(zone) {
     zone.addEventListener('dragover', function(e) { e.preventDefault(); zone.classList.add('hover'); });
     zone.addEventListener('dragleave', function() { zone.classList.remove('hover'); });
-    zone.addEventListener('drop', function(e) {
-      e.preventDefault();
-      zone.classList.remove('hover');
-      const dragIdx = parseInt(e.dataTransfer.getData('text/plain'));
-      handleMatchDrop(dragIdx, parseInt(zone.dataset.orig), zone);
-    });
+    zone.addEventListener('drop', function(e) { e.preventDefault(); zone.classList.remove('hover'); handleMatchDrop(parseInt(e.dataTransfer.getData('text/plain')), parseInt(zone.dataset.orig), zone); });
   });
 }
 
-// ===== TOUCH DRAG =====
-let touchDragEl = null, touchClone = null;
+var touchDragEl = null, touchClone = null;
 function touchStart(e) {
   if (answered) return;
-  const el = e.currentTarget;
+  var el = e.currentTarget;
   if (el.classList.contains('matched')) return;
-  touchDragEl = el;
-  el.classList.add('dragging');
-  // Create floating clone
+  touchDragEl = el; el.classList.add('dragging');
   touchClone = el.cloneNode(true);
-  touchClone.style.position = 'fixed';
-  touchClone.style.zIndex = '1000';
-  touchClone.style.pointerEvents = 'none';
-  touchClone.style.opacity = '0.85';
-  touchClone.style.width = el.offsetWidth + 'px';
-  touchClone.style.transform = 'scale(1.08)';
-  touchClone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
+  touchClone.style.position = 'fixed'; touchClone.style.zIndex = '1000'; touchClone.style.pointerEvents = 'none';
+  touchClone.style.opacity = '0.85'; touchClone.style.width = el.offsetWidth + 'px';
+  touchClone.style.transform = 'scale(1.08)'; touchClone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
   document.body.appendChild(touchClone);
-  const touch = e.touches[0];
+  var touch = e.touches[0];
   touchClone.style.left = (touch.clientX - el.offsetWidth / 2) + 'px';
   touchClone.style.top = (touch.clientY - 30) + 'px';
 }
 function touchMove(e) {
-  if (!touchClone) return;
-  e.preventDefault();
-  const touch = e.touches[0];
+  if (!touchClone) return; e.preventDefault();
+  var touch = e.touches[0];
   touchClone.style.left = (touch.clientX - touchClone.offsetWidth / 2) + 'px';
   touchClone.style.top = (touch.clientY - 30) + 'px';
-  // Highlight drop zone
   document.querySelectorAll('.drop-zone').forEach(function(z) { z.classList.remove('hover'); });
-  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  var target = document.elementFromPoint(touch.clientX, touch.clientY);
   if (target && target.classList.contains('drop-zone')) target.classList.add('hover');
 }
 function touchEnd(e) {
   if (!touchDragEl || !touchClone) return;
-  touchDragEl.classList.remove('dragging');
-  touchClone.remove();
-  touchClone = null;
-  const touch = e.changedTouches[0];
-  const target = document.elementFromPoint(touch.clientX, touch.clientY);
-  if (target && target.classList.contains('drop-zone')) {
-    target.classList.remove('hover');
-    handleMatchDrop(parseInt(touchDragEl.dataset.idx), parseInt(target.dataset.orig), target);
-  }
+  touchDragEl.classList.remove('dragging'); touchClone.remove(); touchClone = null;
+  var touch = e.changedTouches[0];
+  var target = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (target && target.classList.contains('drop-zone')) { target.classList.remove('hover'); handleMatchDrop(parseInt(touchDragEl.dataset.idx), parseInt(target.dataset.orig), target); }
   touchDragEl = null;
 }
 
 function handleMatchDrop(dragIdx, dropOrigIdx, zoneEl) {
   if (answered) return;
   if (matchState.matched[dragIdx] !== undefined) return;
-
-  const isCorrect = dragIdx === dropOrigIdx;
-  const dragEl = document.getElementById('drag-' + dragIdx);
+  var isCorrect = dragIdx === dropOrigIdx;
+  var dragEl = document.getElementById('drag-' + dragIdx);
 
   if (isCorrect) {
-    playSound('drop');
-    dragEl.classList.add('matched');
-    zoneEl.classList.add('correct');
-    zoneEl.classList.add('filled');
+    playSound('drop'); dragEl.classList.add('matched'); zoneEl.classList.add('correct'); zoneEl.classList.add('filled');
     matchState.matched[dragIdx] = true;
-
-    // Check if all matched
     if (Object.keys(matchState.matched).length === matchState.totalPairs) {
-      answered = true;
-      if (timerInterval) clearInterval(timerInterval);
-      combo++;
-      const timeBonus = Math.max(0, Math.floor(timeLeft / 2));
-      const points = 15 + timeBonus + (combo > 1 ? combo * 3 : 0);
-      score += points;
-      createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, points, true);
-      createConfetti();
-      updateCombo();
+      answered = true; if (timerInterval) clearInterval(timerInterval);
+      combo++; var timeBonus = Math.max(0, Math.floor(timeLeft / 2));
+      var pts = 15 + timeBonus + (combo > 1 ? combo * 3 : 0);
+      score += pts;
+      createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, pts, true);
+      createConfetti(); updateCombo();
       document.getElementById('scoreDisplay').textContent = score;
-      showFeedbackEl(levels[currentLevel].correctMsg, true);
-      showNextBtn();
+      showFeedbackEl(levels[currentLevel].correctMsg, true); showNextBtn();
     }
   } else {
-    playSound('wrong');
-    zoneEl.classList.add('wrong');
-    dragEl.classList.add('wrong-match');
-    setTimeout(function() {
-      zoneEl.classList.remove('wrong');
-      dragEl.classList.remove('wrong-match');
-    }, 600);
+    playSound('wrong'); zoneEl.classList.add('wrong'); dragEl.classList.add('wrong-match');
+    setTimeout(function() { zoneEl.classList.remove('wrong'); dragEl.classList.remove('wrong-match'); }, 600);
   }
 }
 
-// ===== CHOICE =====
 function selectOption(idx) {
-  if (answered) return;
-  answered = true;
+  if (answered) return; answered = true;
   if (timerInterval) clearInterval(timerInterval);
-  const lv = levels[currentLevel];
-  const timeBonus = Math.max(0, Math.floor(timeLeft / 2));
-  const ok = lv.options[idx].correct;
-  const card = document.getElementById('gameCard');
+  var lv = levels[currentLevel], timeBonus = Math.max(0, Math.floor(timeLeft / 2));
+  var ok = lv.options[idx].correct, card = document.getElementById('gameCard');
 
   document.querySelectorAll('.option-btn').forEach(function(b, i) {
     b.classList.add('disabled');
@@ -598,84 +471,53 @@ function selectOption(idx) {
   });
 
   if (ok) {
-    playSound('correct');
-    combo++;
-    const points = 10 + timeBonus + (combo > 1 ? combo * 2 : 0);
-    score += points;
-    createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, points, true);
-    createConfetti();
-    updateCombo();
+    playSound('correct'); combo++;
+    var pts = 10 + timeBonus + (combo > 1 ? combo * 2 : 0);
+    score += pts;
+    createFloatingScore(window.innerWidth / 2, window.innerHeight / 2, pts, true);
+    createConfetti(); updateCombo();
   } else {
-    playSound('wrong');
-    card.classList.add('shake-anim');
-    lives--; combo = 0;
-    updateLives(); updateCombo();
+    playSound('wrong'); card.classList.add('shake-anim');
+    lives--; combo = 0; updateLives(); updateCombo();
     setTimeout(function() { card.classList.remove('shake-anim'); }, 500);
   }
-
   document.getElementById('scoreDisplay').textContent = score;
-  showFeedbackEl(ok ? lv.correctMsg : lv.wrongMsg, ok);
-  showNextBtn();
+  showFeedbackEl(ok ? lv.correctMsg : lv.wrongMsg, ok); showNextBtn();
 }
 
-// ===== HELPERS =====
-function disableAll() {
-  document.querySelectorAll('.option-btn, .drag-item').forEach(function(el) {
-    el.classList.add('disabled');
-    el.style.pointerEvents = 'none';
-  });
-}
-function showFeedbackEl(msg, ok) {
-  document.getElementById('feedback').innerHTML =
-    '<div class="feedback ' + (ok ? 'correct' : 'wrong') + '">' +
-    '<span>' + (ok ? '✅' : '💡') + '</span> ' + msg + '</div>';
-}
+function disableAll() { document.querySelectorAll('.option-btn, .drag-item').forEach(function(el) { el.classList.add('disabled'); el.style.pointerEvents = 'none'; }); }
+function showFeedbackEl(msg, ok) { document.getElementById('feedback').innerHTML = '<div class="feedback ' + (ok ? 'correct' : 'wrong') + '"><span>' + (ok ? '✅' : '💡') + '</span> ' + msg + '</div>'; }
 function showNextBtn() {
-  const label = currentLevel < levels.length - 1 ? '下一關 ➜' : '看結果 🎉';
-  document.getElementById('nextArea').innerHTML =
-    '<div style="text-align:center"><button class="btn btn-next" onclick="nextLevel()">' + label + '</button></div>';
-}
+  var label = currentLevel < levels.length - 1 ? '下一關 ➜' : '看結果 🎉';
+  document.getElementById('nextArea').innerHTML = '<div style="text-align:center"><button class="btn btn-next" onclick="nextLevel()">' + label + '</button></div>'; }
 function nextLevel() {
   currentLevel++;
   if (currentLevel >= levels.length) showResult();
   else { renderLevel(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
 }
 
-// ===== GAME OVER =====
 function showGameover() {
   if (timerInterval) clearInterval(timerInterval);
-  document.getElementById('gameoverScore').textContent = score;
-  showScreen('gameoverScreen');
+  document.getElementById('gameoverScore').textContent = score; showScreen('gameoverScreen');
 }
 
-// ===== RESULT =====
 function showResult() {
   if (timerInterval) clearInterval(timerInterval);
   showScreen('resultScreen');
-  const maxScore = 80;
-  const pct = score / maxScore;
-  let emoji, title, msg, stars;
-  if (pct >= 0.85) {
-    emoji = '🏆'; title = '超級厲害！'; stars = '⭐⭐⭐';
-    msg = '你是性別平等小達人！\n你知道每個人都值得被尊重！';
-  } else if (pct >= 0.5) {
-    emoji = '😊'; title = '做得很好！'; stars = '⭐⭐';
-    msg = '你已經學到很多了！\n繼續保持尊重和善良！';
-  } else {
-    emoji = '💪'; title = '繼續加油！'; stars = '⭐';
-    msg = '沒關係，每次嘗試都會更進步！\n再玩一次試試看吧！';
-  }
+  var maxScore = 80, pct = score / maxScore;
+  var emoji, title, msg, stars;
+  if (pct >= 0.85) { emoji = '🏆'; title = '超級厲害！'; stars = '⭐⭐⭐'; msg = '你是性別平等小達人！\n你知道每個人都值得被尊重！'; }
+  else if (pct >= 0.5) { emoji = '😊'; title = '做得很好！'; stars = '⭐⭐'; msg = '你已經學到很多了！\n繼續保持尊重和善良！'; }
+  else { emoji = '💪'; title = '繼續加油！'; stars = '⭐'; msg = '沒關係，每次嘗試都會更進步！\n再玩一次試試看吧！'; }
   document.getElementById('resultEmoji').textContent = emoji;
-  document.getElementById('resultTitle').textContent = title;
-  document.getElementById('resultStars').textContent = stars;
-  document.getElementById('resultScore').textContent = '最終分數：' + score + ' 分';
-  document.getElementById('resultStats').innerHTML =
+  document.getElementById('resultTitle').innerHTML = title; document.getElementById('resultStars').textContent = stars;
+  document.getElementById('resultScore').innerHTML = '最終分數：' + score + ' 分'; document.getElementById('resultStats').innerHTML =
     '<div class="result-stat"><div class="result-stat-label">最高連擊</div><div class="result-stat-value">🔥x' + maxCombo + '</div></div>' +
     '<div class="result-stat"><div class="result-stat-label">剩餘生命</div><div class="result-stat-value">' + (lives > 0 ? '❤️'.repeat(lives) : '💔') + '</div></div>' +
     '<div class="result-stat"><div class="result-stat-label">總關卡</div><div class="result-stat-value">' + levels.length + '/' + levels.length + '</div></div>' +
-    '<div class="result-stat"><div class="result-stat-label">總分</div><div class="result-stat-value">⭐ ' + score + '</div></div>';
-  document.getElementById('resultMsg').textContent = msg;
-}
+    '<div class="result-stat"><div class="result-stat-label">總分</div><div class="result-stat-value">⭐ ' + score + '</div></div>'; document.getElementById('resultMsg').innerHTML = msg; }
+
+
 </script>
 </body>
 </html>
